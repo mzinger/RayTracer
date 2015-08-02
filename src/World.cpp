@@ -4,6 +4,7 @@
  *  Created on: Feb 19, 2009
  *      Author: njoubert
  */
+#include <limits.h>
 
 #include "World.h"
 
@@ -15,9 +16,16 @@ World::~World() {
 }
 
 Primitive* World::intersect(Ray & r, double & t) {
-
-    IMPLEMENT_ME(__FILE__,__LINE__);
-
+    t = std::numeric_limits<double>::max();
+    Primitive* result = nullptr;
+    for (auto* primitive : _primitives) {
+        double curr_t = primitive->intersect(r);
+        if (curr_t < t) {
+            t = curr_t;
+            result = primitive;
+        }
+    }
+    return result;
 }
 
 void World::addPrimitive(Primitive* p) {

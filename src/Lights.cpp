@@ -63,23 +63,22 @@ PointLight::PointLight(RGB illumination, double falloff, double deadDistance) :
 }
 
 const RGB PointLight::getColor(vec4 & p) {
-	//YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
-
+    float distance = (_pos - p).length();
+    float dimming = 1 / pow(distance + _deadDistance, _falloff);
+    return dimming * _illumination;
 }
 void PointLight::setPosition(vec4 pos) {
     _pos = pos;
 }
 
 void PointLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
-
+    returnValue = (position - _pos).normalize();
 }
-Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {
-	//YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
 
+Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {
+    vec3 start(position);
+    vec3 end(_pos);
+    return Ray(start, end, 0.0);
 }
 
 
@@ -93,12 +92,11 @@ void DirectionalLight::setDirection(vec4 dir) {
 }
 
 void DirectionalLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    returnValue = (position - _dir).normalize();
 
 }
 Ray DirectionalLight::getShadowRay(vec4 & position, bool & useDist) {
-	//YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
-
+    vec3 start(position);
+    vec3 end(-1 * _dir);
+    return Ray(start, end, 0.0);
 }

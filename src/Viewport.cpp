@@ -41,13 +41,13 @@ bool Viewport::getSample(Sample & s) {
 }
 
 Ray Viewport::createViewingRay(Sample & s) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    vec3 start(s.x(), s.y(), 0);
+    vec3 end(_eye);
+    return Ray(start, end, 0.0);
 }
 
 vec4 Viewport::getViewVector(vec4 & pos) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    return (pos - _eye).normalize();
 }
 
 int Viewport::getW() { return _pixelsWide; }
