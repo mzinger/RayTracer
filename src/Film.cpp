@@ -39,8 +39,8 @@ void Film::expose(RGB c, Sample & s) {
     color.rgbBlue = c[BLUE] * 255;
     FreeImage_SetPixelColor(_output, (int)s.x(), (int)s.y(), &color);
     _data[_w * (int)s.y() + (int)s.x()] = (FloatRGB) c;
-    ++_counter;
-    if (_counter%100 == 0 && OPENGL_RENDER) {  // only render every 100th exposure
+    _counter = (_counter + 1) % 500;
+    if (_counter == 0 && OPENGL_RENDER) {  // only render every 100th exposure
         BindTexture();
         glutPostRedisplay();
         glutMainLoopEvent();

@@ -7,7 +7,7 @@ LD		 := g++
 OBJSUFFIX	 := .o
 LIBPREFIX	 := lib
 STATIC_LIBSUFFIX := .a
-CFLAGS 		 := -g -std=c++11 -Wno-deprecated
+CFLAGS 		 := -g -std=c++11 -Wno-deprecated -DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 CFLAGS_PLATFORM  := 
 LDFLAGS		 := 
 FRAMEWORKS	 := GLUT OpenGL
