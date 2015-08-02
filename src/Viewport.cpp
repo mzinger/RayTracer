@@ -42,14 +42,20 @@ bool Viewport::getSample(Sample & s) {
             _y -= _pixelsHigh;
             _x = (rand() % 99) / 100.0;
             _y = (rand() % 99) / 100.0;
+            _raysPerPixel--;
+            if (_raysPerPixel == 0) {
+                return false;
+            }
         }
     }
     return true;
 }
 
 Ray Viewport::createViewingRay(Sample & s) {
-    vec3 start(s.x(), s.y(), 0);
-    vec3 end(_eye);
+    vec3 start(_eye);
+    vec3 end(s.x() * 1.0 * (_LR[VX] - _LL[VX]) / _pixelsWide + _LL[VX],
+               s.y() * 1.0 * (_UR[VY] - _LR[VY]) / _pixelsHigh + _LL[VY],
+               _LL[VZ]);
     return Ray(start, end, 0.0);
 }
 

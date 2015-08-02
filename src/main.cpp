@@ -22,9 +22,10 @@ RGB traceRay(Ray & ray, int depth) {
     RGB retColor(0,0,0);
 
     // Example of incrementing a color -- remove this in your code
-    RGB random((rand() % 10) / (float)10, (rand() % 10) / (float)10, (rand() % 10) / (float)10);
-    retColor += random;
-
+    //RGB random((rand() % 10) / (float)10, (rand() % 10) / (float)10, (rand() % 10) / (float)10);
+    //retColor += random;
+    //return retColor;
+    
     //YOUR CODE HERE!!!
 
 	//Use the "world" global variable to access the primitives and lights in the input file.
@@ -42,7 +43,14 @@ RGB traceRay(Ray & ray, int depth) {
 	//Please start all bounce rays at a t value of 0.1 - this has the effect of slightly offsetting
 	//bounce rays from the surface they're bouncing from, and prevents bounce rays from being occluded by their own surface.
 
-    return retColor;
+    
+    double t;
+    Primitive* intersecting = world->intersect(ray, t);
+    if (intersecting != nullptr && t > ray.getMinT()) {
+        return intersecting->getColor();
+    } else {
+        return RGB(0.0, 0.0, 0.0);
+    }
 }
 
 //-------------------------------------------------------------------------------
@@ -56,8 +64,8 @@ void renderWithRaycasting() {
     viewport->resetSampler();
     while(viewport->getSample(sample)) {  //just gets a 2d sample position on the film
         c = RGB(0,0,0);
-    	//ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
-        //ray.transform(viewToWorld);  //transform this to world space
+    	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
+        ray.transform(viewToWorld);  //transform this to world space
         c += traceRay(ray, 0);
         film->expose(c, sample);
     }
