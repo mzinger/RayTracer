@@ -33,19 +33,20 @@ void Viewport::resetSampler() {
  * to the pixels_wide and pixels_high settings
  */
 bool Viewport::getSample(Sample & s) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    // TODO(matan): Add validations, and return false if needed.
+    s.setX(int((s.x() - (_UL[VX])) * _pixelsWide / (_UR[VX] - _UL[VX])));
+    s.setX(int((s.y() - (_LL[VY])) * _pixelsHigh / (_UL[VY] - _LL[VY])));
     return true;
 }
 
 Ray Viewport::createViewingRay(Sample & s) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    vec3 start(s.x(), s.y(), 0);
+    vec3 end(_eye);
+    return Ray(start, end, 0.0);
 }
 
 vec4 Viewport::getViewVector(vec4 & pos) {
-    //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+    return (pos - _eye).normalize();
 }
 
 int Viewport::getW() { return _pixelsWide; }
