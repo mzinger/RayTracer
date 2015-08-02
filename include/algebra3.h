@@ -560,7 +560,6 @@ public:
     // Constructors
     FloatRGB() {
         _c[RED] = _c[GREEN] = _c[BLUE] = 0.0;
-        _c[GREEN] = 1.0;
     }
 
     FloatRGB(const RGB& c) {

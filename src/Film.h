@@ -20,10 +20,12 @@ public:
     void expose(RGB c, Sample & s);
 	
 	void bakeAndSave();
+
     FloatRGB* data() {
         return _data;
     }
 	
+    void BindTexture();
 private:
     int _w;
     int _h;

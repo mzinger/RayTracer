@@ -2,7 +2,7 @@
 
 #include "CS148/Scene.h"
 
-static GLuint texName;
+GLuint texName;
 
 using namespace std;
 
@@ -160,8 +160,8 @@ void keyboard(unsigned char key, int x, int y) {
 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //glEnable(GL_TEXTURE_2D);
-   /* glColor3f(1.0, 0, 0);
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(1.0, 0, 0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glBindTexture(GL_TEXTURE_2D, texName);
     glMatrixMode(GL_MODELVIEW);
@@ -179,10 +179,6 @@ void display(void) {
     glVertex3f(1, 1, 0);
     glTexCoord2f(0, 1);
     glVertex3f(-1, 1, 0);
-    */
-    glColor3f(0, 1, 1);
-    glRectf(-0.1, -0.1, 0.1, 0.1);
-    
     glEnd();
     glDisable(GL_TEXTURE_2D);
     glutSwapBuffers();
@@ -197,20 +193,20 @@ void InitOpenGL(int argc,char** argv, Film* film) {
     // SetUp
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glOrtho(-1, 1, -1, 1, -1, 1);
-    
     glEnable(GL_DEPTH_TEST);
+
     glGenTextures(1, &texName);
     glBindTexture(GL_TEXTURE_2D, texName);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, IMAGE_WIDTH, IMAGE_HEIGHT, 0,
-                 GL_RGB, GL_FLOAT, film->data());
+    film->BindTexture();
+
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
-    glutMainLoop();
-    //glutMainLoopEvent();
+    //glutMainLoop();
+    glutMainLoopEvent();
 }
 
 /// Initialize the environment

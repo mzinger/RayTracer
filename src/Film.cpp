@@ -22,16 +22,23 @@ Film::~Film() {
     FreeImage_DeInitialise();
 }
 
+void Film::BindTexture() {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, IMAGE_WIDTH, IMAGE_HEIGHT, 0,
+                 GL_RGB, GL_FLOAT, data());
+}
+
 /**
  * Here we stick the "saving" of the image.
  * In our first case, this involves using OpenGL to display the pixels.
  */
 void Film::expose(RGB c, Sample & s) {
-    RGBQUAD* color = (RGBQUAD* ) (void *) &c;
-    FreeImage_SetPixelColor(_output, (int)s.x(), (int)s.y(), color);
-    FloatRGB fc(c);
-    _data[_w * (int)s.y() + (int)s.x()] = fc;
-    cout << "Setting color " << fc << " at " << s.x() << "," << s.y() << endl;
+    RGBQUAD color;
+    color.rgbRed = c[RED] * 255;
+    color.rgbGreen = c[GREEN] * 255;
+    color.rgbBlue = c[BLUE] * 255;
+    FreeImage_SetPixelColor(_output, (int)s.x(), (int)s.y(), &color);
+    _data[_w * (int)s.y() + (int)s.x()] = (FloatRGB) c;
+    BindTexture();
     glutPostRedisplay();
     glutMainLoopEvent();
 }

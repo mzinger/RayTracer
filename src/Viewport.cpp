@@ -27,16 +27,17 @@ void Viewport::resetSampler() {
     _x = _y = 1.0 / (_incPP*2); //Starts off at the center of a pixel.
 }
 
-
 /**
  * This ONLY fills in the (i, j) coordinates of the point according
  * to the pixels_wide and pixels_high settings
  */
 bool Viewport::getSample(Sample & s) {
-    s.setX(rand() % IMAGE_WIDTH);
-    s.setY(rand() % IMAGE_HEIGHT);
-    //YOUR CODE HERE
-	//IMPLEMENT_ME(__FILE__,__LINE__);
+    s.setX(random()% IMAGE_WIDTH);
+    s.setY(random()% IMAGE_HEIGHT);
+    /*
+    // TODO(matan): Add validations, and return false if needed.
+    s.setX(int((s.x() - (_UL[VX])) * _pixelsWide / (_UR[VX] - _UL[VX])));
+    s.setX(int((s.y() - (_LL[VY])) * _pixelsHigh / (_UL[VY] - _LL[VY])));*/
     return true;
 }
 
