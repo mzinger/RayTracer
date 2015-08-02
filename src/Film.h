@@ -29,6 +29,7 @@ public:
 private:
     int _w;
     int _h;
+    int _counter;
 	string _filename;
     FIBITMAP* _output;
     FloatRGB* _data;

@@ -216,7 +216,9 @@ int main(int argc,char** argv) {
         exit(1);
     }
     film = new Film(IMAGE_WIDTH, IMAGE_HEIGHT, argv[2]);
-    InitOpenGL(argc, argv, film);
+    if (OPENGL_RENDER) {
+        InitOpenGL(argc, argv, film);
+    }
     scene = new Scene(argv[1]);
     viewToWorld = identity3D();
     world = new World();

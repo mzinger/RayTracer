@@ -11,6 +11,7 @@ Film::Film(int w, int h, string filename) {
 	_w = w;
 	_h = h;
 	_filename = filename;
+    _counter = 0;
     FreeImage_Initialise();
     _output = FreeImage_Allocate(_w, _h, 24);
     _data = new FloatRGB[_w * _h];
@@ -38,9 +39,12 @@ void Film::expose(RGB c, Sample & s) {
     color.rgbBlue = c[BLUE] * 255;
     FreeImage_SetPixelColor(_output, (int)s.x(), (int)s.y(), &color);
     _data[_w * (int)s.y() + (int)s.x()] = (FloatRGB) c;
-    BindTexture();
-    glutPostRedisplay();
-    glutMainLoopEvent();
+    ++_counter;
+    if (_counter%100 == 0 && OPENGL_RENDER) {  // only render every 100th exposure
+        BindTexture();
+        glutPostRedisplay();
+        glutMainLoopEvent();
+    }
 }
 
 void Film::bakeAndSave() {
