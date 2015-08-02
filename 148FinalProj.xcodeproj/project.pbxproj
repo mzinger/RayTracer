@@ -16,7 +16,6 @@
 		4D2E94811B6B1840007C4240 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		4D2E94821B6B1840007C4240 /* scene1.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scene1.scd; sourceTree = "<group>"; };
 		4D2E94831B6B1840007C4240 /* scene2.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scene2.scd; sourceTree = "<group>"; };
-		4D2E94841B6B1840007C4240 /* scene3.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scene3.scd; sourceTree = "<group>"; };
 		4D2E94851B6B1840007C4240 /* scene4.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scene4.scd; sourceTree = "<group>"; };
 		4D2E94861B6B1840007C4240 /* scene5.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = scene5.scd; sourceTree = "<group>"; };
 		4D2E94871B6B1840007C4240 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
@@ -37,7 +36,6 @@
 				4D2E94811B6B1840007C4240 /* makefile */,
 				4D2E94821B6B1840007C4240 /* scene1.scd */,
 				4D2E94831B6B1840007C4240 /* scene2.scd */,
-				4D2E94841B6B1840007C4240 /* scene3.scd */,
 				4D2E94851B6B1840007C4240 /* scene4.scd */,
 				4D2E94861B6B1840007C4240 /* scene5.scd */,
 				4D2E94871B6B1840007C4240 /* src */,
@@ -56,7 +54,7 @@
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = /Users/zinger/Documents/cs148/148FinalProj/;
+			buildWorkingDirectory = /Users/ankitkr/Desktop/cs148/Project/RayTracer;
 			dependencies = (
 			);
 			name = 148FinalProj;
@@ -211,6 +209,7 @@
 				4D2E946B1B6B1699007C4240 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

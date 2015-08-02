@@ -1,50 +1,41 @@
-#
-# THIS IS THE DEFAULT MAKEFILE FOR CS184
-# Author: njoubert
-#
-
-#Code   -------------------------------
-
-### YOU CAN CHANGE THESE VARIABLES AS YOU ADD CODE:
 TARGET := raytracer
 SOURCES := $(wildcard ./src/CS148/*.cpp) $(wildcard ./src/*.cpp)
 
-#Libraries -------------------------------
+CC		 := g++
+LD		 := g++
+OBJSUFFIX	 := .o
+LIBPREFIX	 := lib
+STATIC_LIBSUFFIX := .a
+CFLAGS 		 := -g -Wno-deprecated
+CFLAGS_PLATFORM  := 
+LDFLAGS		 := 
+FRAMEWORKS	 := GLUT OpenGL
+LIBS		 := GL GLUT m objc stdc++ freeimage
 
-#Check for OSX. Works on 10.5 (and 10.4 but untested)
-#This line still kicks out an annoying error on Solaris.
-ifeq ($(shell sw_vers 2>/dev/null | grep Mac | awk '{ print $$2}'),Mac)
-	#Assume Mac
-	INCLUDE := -I./include/ -I/opt/local/include 
-	LIBRARY := -L./lib/ -lm -lstdc++ -L/opt/local/lib -lfreeimage
-	FRAMEWORK :=
-	MACROS := -DOSX
-	PLATFORM := Mac
-else
-	#Assume X11
-	INCLUDE := -I./include/
-	LIBRARY := -L./lib/
-	FRAMEWORK := 
-	MACROS := 
-	PLATFORM := *Nix
-endif
+# Mac users need to point to the libpng directories
+EXTRA_LIB_DIRS := /opt/local/lib /usr/local/lib
+EXTRA_INC_DIRS  := /opt/local/include ./include/ /usr/local/include
 
-#Basic Stuff -----------------------------
+INCDIRS    := .  $(EXTRA_INC_DIRS)
+LIBDIRS    := $(EXTRA_LIB_DIRS)
 
-CC := gcc
-CXX := g++
-CXXFLAGS := -g -Wall -O3 -fmessage-length=0 $(INCLUDE) $(MACROS)
-LDFLAGS := $(FRAMEWORK) $(LIBRARY)
-#-----------------------------------------
+CFLAGS     += $(addprefix -I, $(INCDIRS))
+CFLAGS	   += $(CFLAGS_PLATFORM)
+LDFLAGS    += $(addprefix -L, $(LIBDIRS))
+LDLIBS	   := $(addprefix -l, $(LIBS))
+LDFRAMEWORKS := $(addprefix -framework , $(FRAMEWORKS))
+OBJS       :=  $(addsuffix $(OBJSUFFIX), $(FILES))
+LIBPATH += -L"/System/Library/Frameworks/OpenGL.framework/Libraries"
+
 %.o : %.cpp
-	@echo "Compiling .cpp to .o for $(PLATFORM) Platform:  $<" 
-	@$(CXX) -c -Wall $(CXXFLAGS) $< -o $@
+	@echo "Compiling .cpp to .o:  $<" 
+	@$(LD) -c -Wall $(CFLAGS) $< -o $@
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(TARGET): $(OBJECTS)
 	@echo "Linking .o files into:  $(TARGET)"
-	@$(CXX) $(LDFLAGS) $(OBJECTS) -o $(TARGET)
+	@$(LD) $(LDFLAGS) $(LDLIBS) $(LDFRAMEWORKS) $(LIBPATH) $(OBJECTS) -o $(TARGET)
 
 default: $(TARGET) 
 

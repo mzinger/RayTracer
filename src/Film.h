@@ -20,12 +20,16 @@ public:
     void expose(RGB c, Sample & s);
 	
 	void bakeAndSave();
+    FloatRGB* data() {
+        return _data;
+    }
 	
 private:
     int _w;
     int _h;
 	string _filename;
-    
+    FIBITMAP* _output;
+    FloatRGB* _data;
 };
 
 #endif /* FILM_H_ */

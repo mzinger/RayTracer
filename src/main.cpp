@@ -2,6 +2,8 @@
 
 #include "CS148/Scene.h"
 
+static GLuint texName;
+
 using namespace std;
 
 //****************************************************
@@ -20,11 +22,8 @@ RGB traceRay(Ray & ray, int depth) {
     RGB retColor(0,0,0);
 
     // Example of incrementing a color -- remove this in your code
-    RGB green(0,0.5,0);
-    retColor += green;
-
-
-
+    RGB random((rand() % 10) / (float)10, (rand() % 10) / (float)10, (rand() % 10) / (float)10);
+    retColor += random;
 
     //YOUR CODE HERE!!!
 
@@ -43,9 +42,6 @@ RGB traceRay(Ray & ray, int depth) {
 	//Please start all bounce rays at a t value of 0.1 - this has the effect of slightly offsetting
 	//bounce rays from the surface they're bouncing from, and prevents bounce rays from being occluded by their own surface.
 
-
-
-
     return retColor;
 }
 
@@ -60,8 +56,8 @@ void renderWithRaycasting() {
     viewport->resetSampler();
     while(viewport->getSample(sample)) {  //just gets a 2d sample position on the film
         c = RGB(0,0,0);
-    	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
-        ray.transform(viewToWorld);  //transform this to world space
+    	//ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
+        //ray.transform(viewToWorld);  //transform this to world space
         c += traceRay(ray, 0);
         film->expose(c, sample);
     }
@@ -154,20 +150,84 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
 }
 
 //-------------------------------------------------------------------------------
+
+void keyboard(unsigned char key, int x, int y) {
+    switch (key) {
+        case 'q':  //  Quit program.
+            exit(0);
+    }
+}
+
+void display(void) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glEnable(GL_TEXTURE_2D);
+   /* glColor3f(1.0, 0, 0);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBindTexture(GL_TEXTURE_2D, texName);
+    glMatrixMode(GL_MODELVIEW);
+    glBegin(GL_TRIANGLES);
+    glTexCoord2f(0, 1);
+    glVertex3f(-1, 1, 0);
+    glTexCoord2f(0, 0);
+    glVertex3f(-1, -1, 0);
+    glTexCoord2f(1, 0);
+    glVertex3f(1, -1, 0);
+    glColor3f(0, 0, 1.0);
+    glTexCoord2f(1, 0);
+    glVertex3f(1, -1, 0);
+    glTexCoord2f(1, 1);
+    glVertex3f(1, 1, 0);
+    glTexCoord2f(0, 1);
+    glVertex3f(-1, 1, 0);
+    */
+    glColor3f(0, 1, 1);
+    glRectf(-0.1, -0.1, 0.1, 0.1);
+    
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+    glutSwapBuffers();
+}
+
+void InitOpenGL(int argc,char** argv, Film* film) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize (IMAGE_WIDTH, IMAGE_HEIGHT);
+    glutInitWindowPosition (100, 100);
+    glutCreateWindow ("RayTracer");
+    // SetUp
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glOrtho(-1, 1, -1, 1, -1, 1);
+    
+    glEnable(GL_DEPTH_TEST);
+    glGenTextures(1, &texName);
+    glBindTexture(GL_TEXTURE_2D, texName);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, IMAGE_WIDTH, IMAGE_HEIGHT, 0,
+                 GL_RGB, GL_FLOAT, film->data());
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutMainLoop();
+    //glutMainLoopEvent();
+}
+
 /// Initialize the environment
 int main(int argc,char** argv) {
-	
-	if (argc != 3) {
-		cout << "USAGE: raytracer scene.scd output.png" << endl;
-		exit(1);
-	}
-	
-	film = new Film(IMAGE_WIDTH, IMAGE_HEIGHT, argv[2]);
+    if (argc != 3) {
+        cout << "USAGE: raytracer scene.scd output.png" << endl;
+        exit(1);
+    }
+    film = new Film(IMAGE_WIDTH, IMAGE_HEIGHT, argv[2]);
+    InitOpenGL(argc, argv, film);
     scene = new Scene(argv[1]);
     viewToWorld = identity3D();
     world = new World();
     sceneToWorld(scene->getRoot(), identity3D(), 0);
-	cout << "Imported Scene File." << endl;
-	world->printStats();
-	renderWithRaycasting();
+    cout << "Imported Scene File." << endl;
+    world->printStats();
+    renderWithRaycasting();
 }
+
+

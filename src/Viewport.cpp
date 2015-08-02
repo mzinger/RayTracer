@@ -33,8 +33,10 @@ void Viewport::resetSampler() {
  * to the pixels_wide and pixels_high settings
  */
 bool Viewport::getSample(Sample & s) {
+    s.setX(rand() % IMAGE_WIDTH);
+    s.setY(rand() % IMAGE_HEIGHT);
     //YOUR CODE HERE
-	IMPLEMENT_ME(__FILE__,__LINE__);
+	//IMPLEMENT_ME(__FILE__,__LINE__);
     return true;
 }
 

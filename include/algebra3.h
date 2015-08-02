@@ -339,6 +339,7 @@ public:
     mat3 transpose() const; // transpose
     mat3 inverse() const; // inverse
     mat3& apply(V_FCT_PTR fct); // apply a func. to each element
+    float determinant() const;  // determinant
 
     // friends
 
@@ -547,6 +548,30 @@ public:
     friend ostream& operator <<(ostream& s, const RGB& v); // output to stream
 #endif // ALGEBRA3IOSTREAMS
 
+};
+
+class FloatRGB {
+protected:
+    
+    float _c[3];
+
+public:
+    
+    // Constructors
+    FloatRGB() {
+        _c[RED] = _c[GREEN] = _c[BLUE] = 0.0;
+        _c[GREEN] = 1.0;
+    }
+
+    FloatRGB(const RGB& c) {
+        _c[RED] = (float)c[RED];
+        _c[GREEN] = (float)c[GREEN];
+        _c[BLUE] = (float)c[BLUE];
+    }
+
+#ifdef ALGEBRA3IOSTREAMS
+    friend ostream& operator <<(ostream& s, const FloatRGB& v); // output to stream
+#endif // ALGEBRA3IOSTREAMS
 };
 
 /****************************************************************
@@ -1366,6 +1391,11 @@ inline const vec3& mat3::operator [](int i) const {
 
 // SPECIAL FUNCTIONS
 
+inline float mat3::determinant() const {
+    return v[0][0] * (v[1][1]*v[2][2] - v[2][1]*v[1][2]) - v[0][1] * (v[1][0] * v[2][2] - v[2][0] * v[1][2]) +
+    v[0][2] * (v[1][0] * v[2][1] - v[2][0] * v[1][1]);
+}
+
 inline mat3 mat3::transpose() const {
     return mat3(vec3(v[0][0], v[1][0], v[2][0]),
             vec3(v[0][1], v[1][1], v[2][1]), vec3(v[0][2], v[1][2], v[2][2]));
@@ -1890,7 +1920,11 @@ inline ostream& operator <<(ostream& s, const RGB& v) {
 }
 #endif // ALGEBRA3IOSTREAMS
 
-
+#ifdef ALGEBRA3IOSTREAMS
+inline ostream& operator <<(ostream& s, const FloatRGB& v) {
+    return s << "{ r=" << v._c[RED] << " cg=" << v._c[GREEN] << " b=" << v._c[BLUE] << " }";
+}
+#endif // ALGEBRA3IOSTREAMS
 
 /****************************************************************
  *                                                              *
