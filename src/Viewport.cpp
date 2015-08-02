@@ -32,12 +32,18 @@ void Viewport::resetSampler() {
  * to the pixels_wide and pixels_high settings
  */
 bool Viewport::getSample(Sample & s) {
-    s.setX(random()% IMAGE_WIDTH);
-    s.setY(random()% IMAGE_HEIGHT);
-    /*
-    // TODO(matan): Add validations, and return false if needed.
-    s.setX(int((s.x() - (_UL[VX])) * _pixelsWide / (_UR[VX] - _UL[VX])));
-    s.setX(int((s.y() - (_LL[VY])) * _pixelsHigh / (_UL[VY] - _LL[VY])));*/
+    s.setX(_x);
+    s.setY(_y);
+    _x += 1;
+    if (_x > _pixelsWide) {
+        _x -= _pixelsWide;
+        _y += 1;
+        if (_y > _pixelsHigh) {
+            _y -= _pixelsHigh;
+            _x = (rand() % 99) / 100.0;
+            _y = (rand() % 99) / 100.0;
+        }
+    }
     return true;
 }
 
