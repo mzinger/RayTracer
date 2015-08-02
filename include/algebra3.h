@@ -568,6 +568,14 @@ public:
         _c[BLUE] = (float)c[BLUE];
     }
 
+    float& operator [](int i); // indexing
+    float operator[](int i) const; // read-only indexing
+
+    friend FloatRGB operator +(const FloatRGB& a, const FloatRGB& b); // v1 + v2
+    friend FloatRGB operator /(const FloatRGB& a, const double d); // v1 / 3.0
+    friend FloatRGB operator *(const FloatRGB& a, const double d); // v1 * 3.0
+    friend FloatRGB operator *(const double d, const FloatRGB& a); // 3.0 * v1
+
 #ifdef ALGEBRA3IOSTREAMS
     friend ostream& operator <<(ostream& s, const FloatRGB& v); // output to stream
 #endif // ALGEBRA3IOSTREAMS
@@ -1898,6 +1906,7 @@ inline RGB operator *(const RGB& a, const RGB& b) {
                 a._c[GREEN] * b._c[GREEN],
                 a._c[BLUE] * b._c[BLUE]);
 }
+
 inline RGB operator /(const RGB& a, const double d) {
     double d_inv = 1. / d;
     return RGB(a._c[RED] * d_inv, a._c[GREEN] * d_inv, a._c[BLUE] * d_inv);
@@ -1918,6 +1927,33 @@ inline ostream& operator <<(ostream& s, const RGB& v) {
     return s << "{ r=" << v._c[RED] << " g=" << v._c[GREEN] << " b=" << v._c[BLUE] << " }";
 }
 #endif // ALGEBRA3IOSTREAMS
+
+inline float& FloatRGB::operator [](int i) {
+    assert(! (i < RED || i> BLUE));
+    return _c[i];
+}
+
+inline float FloatRGB::operator [](int i) const {
+    assert(! (i < RED || i> BLUE));
+    return _c[i];
+}
+
+inline FloatRGB operator +(const FloatRGB& a, const FloatRGB& b) {
+    return RGB(a._c[RED] + b._c[RED], a._c[GREEN] + b._c[GREEN], a._c[BLUE] + b._c[BLUE]);
+}
+
+inline FloatRGB operator *(const FloatRGB& a, const double d) {
+    return RGB(d * a._c[RED], d * a._c[GREEN], d * a._c[BLUE]);
+}
+
+inline FloatRGB operator *(const double d, const FloatRGB& a) {
+    return a * d;
+}
+
+inline FloatRGB operator /(const FloatRGB& a, const double d) {
+    double d_inv = 1. / d;
+    return RGB(a._c[RED] * d_inv, a._c[GREEN] * d_inv, a._c[BLUE] * d_inv);
+}
 
 #ifdef ALGEBRA3IOSTREAMS
 inline ostream& operator <<(ostream& s, const FloatRGB& v) {

@@ -24,12 +24,11 @@
 //Include our math library
 #include <algebra3.h>
 
-#define __gl3_h_
 #include <GL/freeglut.h>
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-#define RAYS_PER_PIXEL 4
+#define RAYS_PER_PIXEL 1
 
 #define OPENGL_RENDER (1)
 
