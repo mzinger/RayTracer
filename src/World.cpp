@@ -20,7 +20,7 @@ Primitive* World::intersect(Ray & r, double & t) {
     Primitive* result = nullptr;
     for (auto* primitive : _primitives) {
         double curr_t = primitive->intersect(r);
-        if (curr_t < t) {
+        if (curr_t < t && curr_t >= r.getMinT()) {
             t = curr_t;
             result = primitive;
         }

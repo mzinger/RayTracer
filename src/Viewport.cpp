@@ -52,15 +52,25 @@ bool Viewport::getSample(Sample & s) {
 }
 
 Ray Viewport::createViewingRay(Sample & s) {
+    double u = 1.0 * s.x() / _pixelsWide;
+    double u_tag = 1.0 - u;
+    double v = 1.0 * s.y() / _pixelsHigh;
+    double v_tag = 1.0 - v;
+    
+    vec4 p = (((_LL * v_tag) + (_UL * v)) * u_tag) + (((_LR * v_tag) + (_UR * v)) * u);
+    
+    vec4 direction = p - _eye;
+    direction[VW] = 1;
+
     vec3 start(_eye);
-    vec3 end(s.x() * 1.0 * (_LR[VX] - _LL[VX]) / _pixelsWide + _LL[VX],
-               s.y() * 1.0 * (_UR[VY] - _LR[VY]) / _pixelsHigh + _LL[VY],
-               _LL[VZ]);
-    return Ray(start, end, 0.0);
+    vec3 end(-direction);
+    
+    Ray result = Ray(start, end, 0.1);
+    return result;
 }
 
 vec4 Viewport::getViewVector(vec4 & pos) {
-    return (pos - _eye).normalize();
+    return (_eye - pos).normalize();
 }
 
 int Viewport::getW() { return _pixelsWide; }
