@@ -41,33 +41,30 @@ RGB traceRay(Ray & ray, int depth) {
     double t;
     Primitive* intersecting = world->intersect(ray, t);
     if (intersecting != nullptr) {
-        return intersecting->getColor();
-        RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
+        //return intersecting->getColor();
         vec4 point = ray.getPos(t);
         vec3 n(intersecting->calculateNormal(point));
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
             RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor() +
             (1 - intersecting->getMaterial().getMSM()) * RGB(1, 1, 1);
-
             Light* light = *light_it;
-            vec4 l; light->getIncidenceVector(point, l);
-            vec3 l_dir(l); l_dir.normalize();
-            vec3 p;
+            vec3 l_dir; light->getIncidenceVector(point, l_dir);
+            vec3 p(point);
             double t_l;
             Ray light_ray(p, l_dir, 0.1);
             if (world->intersect(light_ray, t_l) == nullptr) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d(viewport->getViewVector(point));
-                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(d*n, 0);
+                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(l_dir*n, 0);
                 vec3 h = (l_dir + d).normalize();
                 RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
                 pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
-                //cout << "!" << h*n << endl;
-                retColor += LambComp; //  + SpecComp;
+                retColor += LambComp + SpecComp;
             }
             ++light_it;
         }
+        RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
     }
     return retColor;

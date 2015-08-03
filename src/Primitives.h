@@ -25,7 +25,7 @@ public:
     virtual double intersect(Ray & ray)=0;
 
     /** sets "normal" to be a normal for the given position on the object. */
-    virtual vec4 calculateNormal(vec4 & position)=0;
+    virtual vec3 calculateNormal(vec4 & position)=0;
 
     void setColor(RGB & c);
     void setMaterial(Material & m);
@@ -46,7 +46,7 @@ public:
     Sphere(double radius, RGB & c, Material & m, mat4 modelToWorld);
 
     double intersect(Ray & ray);
-    vec4 calculateNormal(vec4 & position);
+    vec3 calculateNormal(vec4 & position);
 
 private:
     double _r;
@@ -59,7 +59,7 @@ public:
     Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w);
 
     double intersect(Ray &ray);
-    vec4 calculateNormal(vec4 & position);
+    vec3 calculateNormal(vec4 & position);
 
 private:
     vec3 verts[3];

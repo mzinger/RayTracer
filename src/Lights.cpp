@@ -46,7 +46,7 @@ AmbientLight::AmbientLight(RGB illumination) : Light(illumination) {
     //intentionally empty
 }
 
-void AmbientLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
+void AmbientLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
     throw "AMBIENT LIGHTS DO NOT HAVE A SENSE OF DIRECTION OR POSITION`";
 }
 Ray AmbientLight::getShadowRay(vec4 & position, bool & useDist) {
@@ -63,7 +63,7 @@ PointLight::PointLight(RGB illumination, double falloff, double deadDistance) :
 }
 
 const RGB PointLight::getColor(vec4 & p) {
-    float distance = (_pos - p).length();
+    float distance = ((vec3)_pos - (vec3)p).length();
     float dimming = 1 / pow(distance + _deadDistance, _falloff);
     return dimming * _illumination;
 }
@@ -71,10 +71,9 @@ void PointLight::setPosition(vec4 pos) {
     _pos = pos;
 }
 
-void PointLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
-    returnValue = _pos - position;
-    returnValue[VW] = 1;
-    returnValue = returnValue.normalize();
+void PointLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
+    returnValue = vec3(_pos - position, VW);  // drop last component
+    returnValue.normalize();
 }
 
 Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {
@@ -93,8 +92,9 @@ void DirectionalLight::setDirection(vec4 dir) {
     _dir[VW] = 0.0;
 }
 
-void DirectionalLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
-    returnValue = (-_dir).normalize();
+void DirectionalLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
+    returnValue = vec3(-1*_dir, VW) ; // drop last component
+    returnValue.normalize();
 
 }
 Ray DirectionalLight::getShadowRay(vec4 & position, bool & useDist) {

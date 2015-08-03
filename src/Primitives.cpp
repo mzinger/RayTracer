@@ -56,10 +56,10 @@ double Sphere::intersect(Ray & ray) {
 }
 
 //Calculates the normal for the given position on this sphere.
-inline vec4 Sphere::calculateNormal(vec4 & position) {
-    vec4 normal = (_worldToModel.transpose() * (position - _center)) / _r;
-    //assert(normal*normal == 1);
-    return normal;
+inline vec3 Sphere::calculateNormal(vec4 & position) {
+    vec3 position_t = _worldToModel*position;
+    vec3 normal = _worldToModel.transpose() * (position_t / _r);
+    return normal.normalize();
 }
 
 
@@ -89,10 +89,9 @@ double Triangle::intersect(Ray & ray) {
     return t;
 }
 
-vec4 Triangle::calculateNormal(vec4 & position) {
+vec3 Triangle::calculateNormal(vec4 & position) {
     // normal is same at all positions.
     vec3 normal = (verts[1]- verts[0]) ^ (verts[2] - verts[0]);
     normal = _worldToModel.transpose() * normal;
-    normal.normalize();
-    return vec4(normal, 1);
+    return ((vec3)normal).normalize();
 }
