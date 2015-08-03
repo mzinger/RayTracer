@@ -39,7 +39,7 @@ public:
      * Constructs a normalized vector pointing from the given position to the
      * camera.
      */
-    vec4 getViewVector(vec4 & position);
+    vec4 getViewVector(vec3 & position);
 
     int getW();
     int getH();

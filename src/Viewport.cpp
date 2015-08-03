@@ -69,10 +69,8 @@ Ray Viewport::createViewingRay(Sample & s) {
     return result;
 }
 
-vec4 Viewport::getViewVector(vec4 & pos) {
-    vec4 view = _eye - pos;
-    view[VW] = 1;
-    return view.normalize();
+vec4 Viewport::getViewVector(vec3 & pos) {
+    return ((vec3)_eye - pos).normalize();
 }
 
 int Viewport::getW() { return _pixelsWide; }

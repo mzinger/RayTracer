@@ -55,11 +55,11 @@ RGB traceRay(Ray & ray, int depth) {
             Ray light_ray(p, l_dir, 0.1);
             if (world->intersect(light_ray, t_l) == nullptr) {
                 // This point is not in shadow - lets compute the phong color
-                vec3 d(viewport->getViewVector(point));
+                vec3 d = viewport->getViewVector(p);
+                vec3 r = 2 * (n * l_dir) * n - l_dir;
                 RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(l_dir*n, 0);
-                vec3 h = (l_dir + d).normalize();
                 RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
-                pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
+                pow(MAX(0, r*d), intersecting->getMaterial().getMSP());
                 retColor += LambComp + SpecComp;
             }
             ++light_it;
