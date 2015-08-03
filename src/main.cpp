@@ -41,6 +41,7 @@ RGB traceRay(Ray & ray, int depth) {
     double t;
     Primitive* intersecting = world->intersect(ray, t);
     if (intersecting != nullptr) {
+        return intersecting->getColor();
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         vec4 point = ray.getPos(t);
         vec3 n(intersecting->calculateNormal(point));
@@ -62,7 +63,7 @@ RGB traceRay(Ray & ray, int depth) {
                 vec3 h = (l_dir + d).normalize();
                 RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
                 pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
-                cout << "!" << SpecComp << endl;
+                //cout << "!" << h*n << endl;
                 retColor += LambComp; //  + SpecComp;
             }
             ++light_it;

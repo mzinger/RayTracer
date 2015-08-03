@@ -35,6 +35,7 @@ const Material& Primitive::getMaterial() {
 
 Sphere::Sphere(double radius, RGB & c, Material & m, mat4 m2w): Primitive(c,m,m2w) {
     _r = radius;
+    _center = vec4(0, 0, 0, 1);  // always at origin wrt a transformation.
 }
 
 
@@ -42,11 +43,12 @@ Sphere::Sphere(double radius, RGB & c, Material & m, mat4 m2w): Primitive(c,m,m2
 double Sphere::intersect(Ray & ray) {
     Ray ray_t = ray;
     ray_t.transform(_worldToModel);
+
     // Check intersection of transformed ray with the sphere centered at origin
-    float det = pow((ray_t.direction()*ray_t.start()), 2) - (ray_t.direction()*ray_t.direction())*(ray_t.start()*ray_t.start() - pow(_r,2));
+    float det = pow((ray_t.direction()*(ray_t.start() - _center)), 2) - (ray_t.direction()*ray_t.direction())*(((ray_t.start()-_center)*(ray_t.start()-_center)) - pow(_r,2));
     if (det < 0) return numeric_limits<float>::infinity();
     else det = sqrt(det);
-    float base = -1*(ray_t.direction() * ray_t.start());
+    float base = -1*(ray_t.direction() * (ray_t.start() - _center));
     if (base - det < 0) {
         return (base + det) / (ray_t.direction()*ray_t.direction());
     }
@@ -55,7 +57,7 @@ double Sphere::intersect(Ray & ray) {
 
 //Calculates the normal for the given position on this sphere.
 inline vec4 Sphere::calculateNormal(vec4 & position) {
-    vec4 normal = (_worldToModel.transpose() * position) / _r;
+    vec4 normal = (_worldToModel.transpose() * (position - _center)) / _r;
     //assert(normal*normal == 1);
     return normal;
 }

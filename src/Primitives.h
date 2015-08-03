@@ -50,6 +50,7 @@ public:
 
 private:
     double _r;
+    vec4 _center;
 
 };
 
