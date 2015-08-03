@@ -31,6 +31,7 @@ bool OBJTriangleMesh::loadFile(string file) {
         return false;
     }
     string line;
+    // TODO (ankitkr): Investigate why this variable is unused.
     int normals = 0;
     while (getline(f,line)) {
         stringstream linestream(line);

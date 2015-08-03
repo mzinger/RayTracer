@@ -1,12 +1,13 @@
 TARGET := raytracer
 SOURCES := $(wildcard ./src/CS148/*.cpp) $(wildcard ./src/*.cpp)
+HEADERS := $(wildcard ./src/CS148/*.h) $(wildcard ./src/*.h)
 
 CC		 := g++
 LD		 := g++
 OBJSUFFIX	 := .o
 LIBPREFIX	 := lib
 STATIC_LIBSUFFIX := .a
-CFLAGS 		 := -g -Wno-deprecated
+CFLAGS 		 := -g -std=c++11 -Wno-deprecated -DGL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 CFLAGS_PLATFORM  := 
 LDFLAGS		 := 
 FRAMEWORKS	 := GLUT OpenGL
@@ -27,7 +28,9 @@ LDFRAMEWORKS := $(addprefix -framework , $(FRAMEWORKS))
 OBJS       :=  $(addsuffix $(OBJSUFFIX), $(FILES))
 LIBPATH += -L"/System/Library/Frameworks/OpenGL.framework/Libraries"
 
-%.o : %.cpp
+.PHONY:%.h
+
+%.o : %.cpp %.h
 	@echo "Compiling .cpp to .o:  $<" 
 	@$(LD) -c -Wall $(CFLAGS) $< -o $@
 

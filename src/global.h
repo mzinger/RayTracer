@@ -10,7 +10,6 @@
 
 #define IMPLEMENT_ME(file,line)    cout << "METHOD NEEDS TO BE IMPLEMENTED AT " << file << ":" << line << endl; exit(1);
 
-
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -29,6 +28,8 @@
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-#define RAYS_PER_PIXEL 4
+#define RAYS_PER_PIXEL 1
+
+#define OPENGL_RENDER (1)
 
 #endif /* GLOBAL_H_ */

@@ -67,10 +67,10 @@ string SceneLoader::getString(istream &str)
     str.putback(temp);
     while (str.get(temp))
     {
-        if (temp >= 'a' && temp <= 'z'
-                || temp >= 'A' && temp <= 'Z'
-                || temp >= '0' && temp <= '9'
-                || temp == '_' )
+        if ((temp >= 'a' && temp <= 'z')
+                || (temp >= 'A' && temp <= 'Z')
+                || (temp >= '0' && temp <= '9')
+                || (temp == '_') )
         {
             ret += temp;
         }
