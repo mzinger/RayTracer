@@ -56,7 +56,7 @@ double Sphere::intersect(Ray & ray) {
 //Calculates the normal for the given position on this sphere.
 inline vec4 Sphere::calculateNormal(vec4 & position) {
     vec4 normal = (_worldToModel.transpose() * position) / _r;
-    assert(normal*normal == 1);
+    //assert(normal*normal == 1);
     return normal;
 }
 

@@ -72,7 +72,7 @@ void PointLight::setPosition(vec4 pos) {
 }
 
 void PointLight::getIncidenceVector(vec4 & position, vec4 & returnValue) {
-    returnValue = (position - _pos).normalize();
+    returnValue = (_pos - position).normalize();
 }
 
 Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {

@@ -20,12 +20,6 @@ Scene * scene;
 // Here you raycast a single ray, calculating the color of this ray.
 RGB traceRay(Ray & ray, int depth) {
     RGB retColor(0,0,0);
-
-    // Example of incrementing a color -- remove this in your code
-    //RGB random((rand() % 10) / (float)10, (rand() % 10) / (float)10, (rand() % 10) / (float)10);
-    //retColor += random;
-    //return retColor;
-    
     //YOUR CODE HERE!!!
 
 	//Use the "world" global variable to access the primitives and lights in the input file.
@@ -46,11 +40,37 @@ RGB traceRay(Ray & ray, int depth) {
     
     double t;
     Primitive* intersecting = world->intersect(ray, t);
-    if (intersecting != nullptr && t > ray.getMinT()) {
-        return intersecting->getColor();
-    } else {
-        return RGB(0.0, 0.0, 0.0);
-    }
+    if (intersecting != nullptr) {
+        RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
+        vec4 point = ray.getPos(t);
+        vec3 n(intersecting->calculateNormal(point));
+        vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
+        while(light_it != world->getLightsEndIterator()) {
+            RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor() +
+            (1 - intersecting->getMaterial().getMSM()) * RGB(1, 1, 1);
+
+            Light* light = *light_it;
+            vec4 l; light->getIncidenceVector(point, l);
+            vec3 l_dir(l); l_dir.normalize();
+            vec3 p;
+            double t_l;
+            Ray light_ray(p, l_dir, 0.1);
+            if (world->intersect(light_ray, t_l) == nullptr) {
+                // This point is not in shadow - lets compute the phong color
+                vec3 d(viewport->getViewVector(point));
+                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(-d*n, 0);
+                vec3 h = (l_dir + d).normalize();
+                RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) * pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
+                cout << "!" << d*n << endl;
+                retColor += LambComp; //  + SpecComp;
+            }
+            ++light_it;
+        }
+        retColor += AmbComp;
+        //return intersecting->getColor();
+    }// else {
+        return retColor;//world->getAmbientLightColor();
+    //}
 }
 
 //-------------------------------------------------------------------------------
