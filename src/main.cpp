@@ -58,19 +58,18 @@ RGB traceRay(Ray & ray, int depth) {
             if (world->intersect(light_ray, t_l) == nullptr) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d(viewport->getViewVector(point));
-                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(-d*n, 0);
+                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(d*n, 0);
                 vec3 h = (l_dir + d).normalize();
-                RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) * pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
-                cout << "!" << d*n << endl;
+                RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
+                pow(MAX(0, h*n), intersecting->getMaterial().getMSP());
+                cout << "!" << SpecComp << endl;
                 retColor += LambComp; //  + SpecComp;
             }
             ++light_it;
         }
         retColor += AmbComp;
-        //return intersecting->getColor();
-    }// else {
-        return retColor;//world->getAmbientLightColor();
-    //}
+    }
+    return retColor;
 }
 
 //-------------------------------------------------------------------------------
