@@ -53,7 +53,8 @@ RGB traceRay(Ray & ray, int depth) {
             vec3 p(point);
             double t_l;
             Ray light_ray(p, l_dir, 0.1);
-            if (world->intersect(light_ray, t_l) == nullptr) {
+            double t_max = light_ray.computeT(point);
+            if (world->intersect(light_ray, t_l) == nullptr || t_l >= t_max) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d = viewport->getViewVector(p);
                 vec3 r = 2 * (n * l_dir) * n - l_dir;
