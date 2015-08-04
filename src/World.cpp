@@ -52,6 +52,10 @@ vector<Light*>::const_iterator World::getLightsEndIterator() {
     return _lights.end();
 }
 
+void World::PreprocessToBHVTree() {
+    _bvhTree = new BVHNode(_primitives, 0);  // start splittling from X axes.
+}
+
 void World::printStats() {
 	cout << "World data:" << endl;
 	cout << " primitives: " << _primitives.size() << endl;

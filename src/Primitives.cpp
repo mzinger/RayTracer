@@ -14,6 +14,13 @@ Primitive::Primitive(RGB & c, Material & m, mat4 modelToWorld) {
     _worldToModel = modelToWorld.inverse();
 }
 
+Primitive::Primitive() {
+    _c = RGB(1, 1, 1);
+    _modelToWorld = identity3D();
+    _worldToModel = identity3D();
+}
+
+
 Primitive::~Primitive() {
 }
 
@@ -108,16 +115,27 @@ vec3 Triangle::calculateNormal(vec4 & position) {
     return (vec3(normal, VW)).normalize();
 }
 
+Box::Box (const vector<Primitive*>& primitives) {
+    assert(primitives.size() >= 1);
+    Box bb(primitives[0]->boundingBox().bottomLeft(), primitives[0]->boundingBox().topRight());
+    for (int i = 1; i < primitives.size(); ++i) {
+        Box bb2 = primitives[i]->boundingBox();
+        bb = bb.combine(bb2);
+    }
+    _bottomLeft = bb.bottomLeft();
+    _topRight = bb.topRight();
+}
+
 void Box::transform(mat4 trans) {
     // explicitly create all 8 points, apply transformation, then recomoute BB
-    vec3 p1(bottomLeft);
-    vec3 p2(topRight[0], bottomLeft[1], bottomLeft[2]);
-    vec3 p3(topRight[0], topRight[1], bottomLeft[2]);
-    vec3 p4(bottomLeft[0], topRight[1], bottomLeft[2]);
-    vec3 p5(topRight[0], bottomLeft[1], topRight[2]);
-    vec3 p6(topRight[0], topRight[1], topRight[2]);
-    vec3 p7(bottomLeft[0], topRight[1], topRight[2]);
-    vec3 p8(topRight);
+    vec3 p1(_bottomLeft);
+    vec3 p2(_topRight[0], _bottomLeft[1], _bottomLeft[2]);
+    vec3 p3(_topRight[0], _topRight[1], _bottomLeft[2]);
+    vec3 p4(_bottomLeft[0], _topRight[1], _bottomLeft[2]);
+    vec3 p5(_topRight[0], _bottomLeft[1], _topRight[2]);
+    vec3 p6(_topRight[0], _topRight[1], _topRight[2]);
+    vec3 p7(_bottomLeft[0], _topRight[1], _topRight[2]);
+    vec3 p8(_topRight);
     p1 = trans*p1; p2 = trans*p2; p3 = trans*p3; p4 = trans*p4;
     p5 = trans*p5; p6 = trans*p6; p7 = trans*p7; p8 = trans*p8;
     double min_x = MIN(MIN(MIN(MIN(MIN(MIN(MIN(p1[0], p2[0]),p3[0]),p4[0]),p5[0]),p6[0]),p7[0]),p8[0]);
@@ -126,6 +144,62 @@ void Box::transform(mat4 trans) {
     double max_x = MAX(MAX(MAX(MAX(MAX(MAX(MAX(p1[0], p2[0]),p3[0]),p4[0]),p5[0]),p6[0]),p7[0]),p8[0]);
     double max_y = MAX(MAX(MAX(MAX(MAX(MAX(MAX(p1[1], p2[1]),p3[1]),p4[1]),p5[1]),p6[1]),p7[1]),p8[1]);
     double max_z = MAX(MAX(MAX(MAX(MAX(MAX(MAX(p1[2], p2[2]),p3[2]),p4[2]),p5[2]),p6[2]),p7[2]),p8[2]);
-    bottomLeft = vec3(min_x, min_y, min_z);
-    topRight = vec3(max_x, max_y, max_z);
+    _bottomLeft = vec3(min_x, min_y, min_z);
+    _topRight = vec3(max_x, max_y, max_z);
+}
+
+Box Box::combine(Box& other) {
+    // explicitly create all 8 points, apply transformation, then recomoute BB
+    double min_x = MIN(_bottomLeft[0], other.bottomLeft()[0]);
+    double min_y = MIN(_bottomLeft[1], other.bottomLeft()[1]);
+    double min_z = MIN(_bottomLeft[2], other.bottomLeft()[2]);
+    double max_x = MAX(_topRight[0], other.topRight()[0]);
+    double max_y = MAX(_topRight[1], other.topRight()[1]);
+    double max_z = MAX(_topRight[2], other.topRight()[2]);
+    return Box(vec3(min_x, min_y, min_z), vec3(max_x, max_y, max_z));
+}
+
+BVHNode::BVHNode(vector<Primitive*>& primitives, int AXIS) : Primitive() {
+    int N = primitives.size();
+    assert (N >=1);
+    if (N==1) {
+        left_child = primitives[0];
+        right_child = NULL;
+        _boundingBox = left_child->boundingBox();
+    } else if (N == 2) {
+        left_child = primitives[0];
+        right_child = primitives[1];
+        Box bb = right_child->boundingBox();
+        _boundingBox = left_child->boundingBox().combine(bb);
+    } else {
+        Box bb = Box(primitives);
+        double midpoint = (bb.bottomLeft()[AXIS] + bb.topRight()[AXIS]) / 2;
+        vector<Primitive*> left_list, right_list;
+        for (Primitive* p : primitives) {
+            if ((p->boundingBox().bottomLeft()[AXIS] - midpoint) *
+                (p->boundingBox().topRight()[AXIS] - midpoint) >= 0) {
+                // Completely on one side
+                if (p->boundingBox().bottomLeft()[AXIS] - midpoint > 0) {
+                    right_list.push_back(p);
+                } else {
+                    left_list.push_back(p);
+                }
+            } else {
+                // randomly put on any side
+                if (rand() % 2 == 0) {
+                    right_list.push_back(p);
+                } else {
+                    left_list.push_back(p);
+                }
+            }
+        }
+        left_child = new BVHNode(left_list, (AXIS + 1)%3);
+        right_child = new BVHNode(right_list, (AXIS + 1)%3);
+        bb = right_child->boundingBox();
+        _boundingBox = left_child->boundingBox().combine(bb);
+    }
+}
+
+double BVHNode::intersect(Ray & ray) {
+    
 }

@@ -12,13 +12,6 @@
 #include "Lights.h"
 #include "Primitives.h"
 
-class BVHNode {
-    virtual bool intersect(const Ray& r, double& t);
-    Box bounding_box();
-    
-    
-};
-
 /**
  * The World forms a container for lights and primitives
  * in our scene.
@@ -41,11 +34,13 @@ public:
     vector<Light*>::const_iterator getLightsEndIterator();
 	
 	void printStats();
+    void PreprocessToBHVTree();
 
 private:
     vector<Primitive*> _primitives;
     vector<Light*> _lights;
     AmbientLight _ambientLight;
+    Primitive* _bvhTree;
 };
 
 

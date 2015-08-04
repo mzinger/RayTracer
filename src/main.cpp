@@ -59,7 +59,6 @@ RGB traceRay(Ray & ray, int depth) {
             vec3 l_dir; light->getIncidenceVector(point, l_dir);
             vec3 p(point);
             double t_l;
-            vec3 to_light = -l_dir;
             bool use_dist;
             Ray light_ray = light->getShadowRay(point, use_dist);
             double t_max = numeric_limits<float>::infinity();
@@ -202,6 +201,7 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
             world->addPrimitive(tri);
         }
     }
+    //world->PreprocessToBHVTree();
 }
 
 //-------------------------------------------------------------------------------

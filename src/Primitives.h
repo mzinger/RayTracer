@@ -10,21 +10,36 @@
 
 #include "global.h"
 
+class Primitive;
+
 // An axis aligned bounding box.
 class Box {
 public:
-    Box () : bottomLeft(vec3(0, 0, 0)), topRight(vec3(0,0,0)) {};
-    Box (vec3 bottom_left, vec4 top_right) : bottomLeft(bottom_left), topRight(top_right) {};
+    Box () : _bottomLeft(vec3(0, 0, 0)), _topRight(vec3(0,0,0)) {};
+    Box (vec3 bottom_left, vec4 top_right) : _bottomLeft(bottom_left), _topRight(top_right) {};
+    Box(const Box& other) {
+        _bottomLeft = other._bottomLeft;
+        _topRight = other._topRight;
+    }
+    Box(const vector<Primitive*>& primitives);
+    
     void transform(mat4 tansmat);  // in place transform the bounding box and take the bounding box of the transform
+    vec3 bottomLeft() {
+        return _bottomLeft;
+    }
+    vec3 topRight() {
+        return _topRight;
+    }
+    Box combine(Box& other);
 protected:
-    vec3 bottomLeft;
-    vec3 topRight;
+    vec3 _bottomLeft;
+    vec3 _topRight;
 };
 
 class Primitive {
 protected:
     Primitive(RGB & c, Material & m, mat4 modelToWorld); //Primitives are an abstract class
-
+    Primitive();  // only use for bounding boxes.
 public:
     virtual ~Primitive();
 
@@ -81,6 +96,19 @@ public:
 
 private:
     vec3 verts[3];
+};
+
+class BVHNode : public Primitive {
+public:
+    BVHNode(vector<Primitive*>& primitives, int AXIS);
+    /* returns positive values if intersection, otherwise -ve values */
+    double intersect(Ray& r);
+    /* irrelevant */
+    vec3 calculateNormal(vec4 & position) {
+        return vec3(0, 0, 0);
+    }
+    Primitive* left_child;
+    Primitive* right_child;
 };
 
 #endif /* PRIMITIVE_H_ */
