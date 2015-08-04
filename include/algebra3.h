@@ -454,6 +454,8 @@ public:
 
     vec4 getPos(double t);
     double & getMinT();
+    // Computes t for a point lying on the ray. its callers' responsibility to verify point is on ray.
+    double computeT(const vec4& point);
 
     //accessor functions
 
@@ -1736,6 +1738,11 @@ inline vec4 Ray::getPos(double t) {
 
 inline double & Ray::getMinT() {
     return _min_t;
+}
+
+inline double Ray::computeT(const vec4& point) {
+    vec4 temp = point - _e;
+    return temp[0]/_d[0];
 }
 
 //accessor functions
