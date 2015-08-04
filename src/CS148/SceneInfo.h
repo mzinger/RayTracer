@@ -50,6 +50,19 @@ struct MaterialInfo {
     }
 };
 
+struct VertexInfo {
+    double vertices[6];
+    VertexInfo() {}
+    VertexInfo(double x1, double y1, double x2, double y2, double x3, double y3)
+    {
+        vertices[0] = x1;
+        vertices[1] = y1;
+        vertices[2] = x2;
+        vertices[3] = y2;
+        vertices[4] = x3;
+        vertices[5] = y3;
+    }
+};
 
 struct LightInfo {
     int type;

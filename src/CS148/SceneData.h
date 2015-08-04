@@ -235,6 +235,33 @@ public:
     }
 };
 
+class ParametricTriangle {
+    ParametricValue *_vertices[6];
+    ParametricMaterial *_material;
+    friend class SceneLoader;
+    
+public:
+    MaterialInfo getMaterial(int time) { return _material->getMaterial(time); }
+
+    VertexInfo getVertices(int time) { return VertexInfo(_vertices[0]->getValue(time),
+                                                       _vertices[1]->getValue(time),
+                                                       _vertices[2]->getValue(time),
+                                                       _vertices[3]->getValue(time),
+                                                       _vertices[4]->getValue(time),
+                                                       _vertices[5]->getValue(time)); }
+    
+    ParametricTriangle() : _material(NULL) {
+        for (int i = 0; i < 6; i++) {
+            _vertices[i] = NULL;
+        }
+    }
+    
+    ~ParametricTriangle() {
+        for (int i = 0; i < 6; i++) {
+            delete _vertices[i];
+        }
+    }
+};
 
 class ParametricCamera {
     ParametricValue *_perspective;

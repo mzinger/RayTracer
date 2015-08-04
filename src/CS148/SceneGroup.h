@@ -23,6 +23,7 @@ public:
     /* functions get objects that can exist at leaf nodes -- return false if related object is not present */
     bool computeMesh(OBJTriangleMesh* &mesh, MaterialInfo &material, int time); /* get a mesh */
     bool computeSphere(double &radius, MaterialInfo &material, int time); /* get a sphere */
+    bool computeTriangle(VertexInfo &vertices, MaterialInfo &material, int time); /* get a triangle */
     bool computeLight(LightInfo &ld, int time = 0); /* get light parameters */
     bool computeCamera(CameraInfo &frustum, int time = 0); /* get camera frustum */
 
@@ -41,6 +42,7 @@ private:
     string _name;
     vector<SceneInstance *> _children;
     ParametricSphere * _sphere;
+    ParametricTriangle * _triangle;
     ParametricLight *_light;
     ParametricCamera *_camera;
     OBJTriangleMesh *_mesh;

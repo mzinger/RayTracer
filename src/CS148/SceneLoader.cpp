@@ -638,6 +638,76 @@ bool SceneLoader::doSphere(istream &str, string &name)
     } while (true);
 }
 
+void SceneLoader::SetTriangleDefaults(SceneGroup *n)
+{
+    // set default values for the vertices
+    if (n->_triangle->_vertices[0] == NULL)
+        n->_triangle->_vertices[0] = new ConstValue(0);
+    if (n->_triangle->_vertices[1] == NULL)
+        n->_triangle->_vertices[1] = new ConstValue(0);
+    if (n->_triangle->_vertices[2] == NULL)
+        n->_triangle->_vertices[2] = new ConstValue(0);
+    if (n->_triangle->_vertices[3] == NULL)
+        n->_triangle->_vertices[3] = new ConstValue(0);
+    if (n->_triangle->_vertices[4] == NULL)
+        n->_triangle->_vertices[4] = new ConstValue(0);
+    if (n->_triangle->_vertices[5] == NULL)
+        n->_triangle->_vertices[5] = new ConstValue(0);
+}
+
+bool SceneLoader::doTriangle(istream &str, string &name)
+{
+    if (!getName(str, "triangle", name))
+        return false;
+    
+    SceneGroup *n = new SceneGroup();
+    groups[name] = n;
+    n->_name = name;
+    
+    n->_triangle = new ParametricTriangle();
+    do {
+        int state = findOpenOrClosedParen(str);
+        if (state == ERROR) {
+            SetTriangleDefaults(n);
+            return false;
+        } else if (state == CLOSED) {
+            SetTriangleDefaults(n);
+            return true;
+        } else if (state == OPEN)
+        {
+            string cmd;
+            vector<ParametricValue*> values;
+            if (readCommand(str, cmd)) {
+                if (cmd == "vertices") {
+                    if (getValues(str, values) < 6) {
+                        *err << "vertices with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 6);
+                        n->_triangle->_vertices[0] = values[0];
+                        n->_triangle->_vertices[1] = values[1];
+                        n->_triangle->_vertices[2] = values[2];
+                        n->_triangle->_vertices[3] = values[3];
+                        n->_triangle->_vertices[4] = values[4];
+                        n->_triangle->_vertices[5] = values[5];
+                    }
+                } else if (cmd == "material") {
+                    string matName = getString(str);
+                    if (matName.empty()) {
+                        *err << "No material name after material command at "; errLine(str.tellg());
+                    } else if (materials[matName] == NULL) {
+                        *err << "Unknown material " << matName << " referenced at "; errLine(str.tellg());
+                    } else {
+                        n->_triangle->_material = materials[matName];
+                    }
+                } else {
+                    *err << "Error: command " << cmd << " not recognized at "; errLine(str.tellg());
+                }
+                findCloseParen(str);
+            }
+        }
+    } while (true);
+}
+
 void SceneLoader::SetLightDefaults(SceneGroup *n) {
     // set default values for unset variables
     if (n->_light->_angularFalloff == NULL)
@@ -909,6 +979,18 @@ bool SceneLoader::buildScene(string filename)
                 else
                 {
                     *err << "mangled sphere command at "; errLine(file.tellg());
+                }
+            }
+            else if (line == "Triangle")
+            {
+                string gname;
+                if (doTriangle(file, gname))
+                {
+                    cout << "read Triangle " << gname << endl;
+                }
+                else
+                {
+                    *err << "mangled triangle command at "; errLine(file.tellg());
                 }
             }
             else if (line == "Material")

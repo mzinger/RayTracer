@@ -14,6 +14,7 @@ SceneGroup::SceneGroup()
     _name = "unassigned";
 
     _sphere = NULL;
+    _triangle = NULL;
     _light = NULL;
     _camera = NULL;
     _meshMaterial = NULL;
@@ -59,6 +60,16 @@ bool SceneGroup::computeSphere(double &radius, MaterialInfo &material, int time)
     
     radius = _sphere->getRadius(time);
     material = _sphere->getMaterial(time);
+    
+    return true;
+}
+
+bool SceneGroup::computeTriangle(VertexInfo &vertices, MaterialInfo &material, int time) { /* get a triangle */
+    if (_triangle == NULL)
+        return false;
+
+    vertices = _triangle->getVertices(time);
+    material = _triangle->getMaterial(time);
     
     return true;
 }

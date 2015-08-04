@@ -58,6 +58,7 @@ private:
     bool getName(istream &str, string type, string &name); // gets a variable name from a command
     void SetLightDefaults(SceneGroup *n);
     void SetSphereDefaults(SceneGroup *n);
+    void SetTriangleDefaults(SceneGroup *n);
     void SetCameraDefaults(SceneGroup *n);
     void SetMaterialDefaults(ParametricMaterial *n);
 
@@ -69,6 +70,7 @@ private:
     bool doCamera(istream &str, string &name); // process a Camera command
     bool doLight(istream &str, string &name); // process a Light command
     bool doSphere(istream &str, string &name); // process a Sphere command
+    bool doTriangle(istream &str, string &name); // process a Triangle command
     bool doMaterial(istream &str, string &name); // process a Material command
 
     /* the main loading function */

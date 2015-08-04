@@ -15,7 +15,8 @@ World * world;
 Film * film;
 Scene * scene;
 
-
+float rayNum = 0;
+float last_percent = 0;
 //-------------------------------------------------------------------------------
 // Here you raycast a single ray, calculating the color of this ray.
 RGB traceRay(Ray & ray, int depth) {
@@ -40,10 +41,16 @@ RGB traceRay(Ray & ray, int depth) {
     
     double t;
     Primitive* intersecting = world->intersect(ray, t);
+    float percent_done = rayNum / (IMAGE_HEIGHT*IMAGE_WIDTH*RAYS_PER_PIXEL) * 100;
+    if (percent_done - last_percent > 1) {
+        last_percent = percent_done;
+        cout << (int)percent_done << " % done" << endl;
+    }
     if (intersecting != nullptr) {
         //return intersecting->getColor();
         vec4 point = ray.getPos(t);
         vec3 n(intersecting->calculateNormal(point));
+        cout << n << endl;
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
             RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor() +
@@ -86,6 +93,7 @@ void renderWithRaycasting() {
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
         c += traceRay(ray, 0);
+        ++rayNum;
         film->expose(c, sample);
     }
 	film->bakeAndSave();
@@ -161,10 +169,23 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
         world->addPrimitive(sph);
     }
 
+    VertexInfo vert;
+    if (g->computeTriangle(vert, m, time)) {
+        Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
+        Triangle *tri = new Triangle(vec3(vert.vertices[0], vert.vertices[1], 0),
+                                     vec3(vert.vertices[2], vert.vertices[3], 0),
+                                     vec3(vert.vertices[4], vert.vertices[5], 0),
+                                     m.color, mat, localToWorld);
+        world->addPrimitive(tri);
+    }
+    
     OBJTriangleMesh *t;
     if (g->computeMesh(t, m, time)) {
         Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
+        int num = 0;
         for (vector<OBJTriangle*>::iterator it = t->triangles.begin(); it != t->triangles.end(); ++it) {
+            if (num > 500) break;
+            ++num;
             Triangle *tri = new Triangle(
                                 t->vertices[ (**it).ind[0] ]->pos,
                                 t->vertices[ (**it).ind[1] ]->pos,
@@ -173,7 +194,6 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
             world->addPrimitive(tri);
         }
     }
-
 }
 
 //-------------------------------------------------------------------------------

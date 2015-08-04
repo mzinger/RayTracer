@@ -10,6 +10,17 @@
 
 #include "global.h"
 
+// An axis aligned bounding box.
+class Box {
+public:
+    Box () : bottomLeft(vec3(0, 0, 0)), topRight(vec3(0,0,0)) {};
+    Box (vec3 bottom_left, vec4 top_right) : bottomLeft(bottom_left), topRight(top_right) {};
+    void transform(mat4 tansmat);  // in place transform the bounding box and take the bounding box of the transform
+protected:
+    vec3 bottomLeft;
+    vec3 topRight;
+};
+
 class Primitive {
 protected:
     Primitive(RGB & c, Material & m, mat4 modelToWorld); //Primitives are an abstract class
@@ -26,6 +37,10 @@ public:
 
     /** sets "normal" to be a normal for the given position on the object. */
     virtual vec3 calculateNormal(vec4 & position)=0;
+    /** Returns the bounding box of this primitive in world coordinates **/
+    Box boundingBox() {
+        return _boundingBox;
+    }
 
     void setColor(RGB & c);
     void setMaterial(Material & m);
@@ -35,6 +50,7 @@ public:
 protected:
 	mat4 _modelToWorld;
 	mat4 _worldToModel;
+    Box _boundingBox;
 
 private:
     RGB _c;
@@ -47,6 +63,7 @@ public:
 
     double intersect(Ray & ray);
     vec3 calculateNormal(vec4 & position);
+    Box boundingBox();
 
 private:
     double _r;
@@ -60,6 +77,7 @@ public:
 
     double intersect(Ray &ray);
     vec3 calculateNormal(vec4 & position);
+    Box boundingBox();
 
 private:
     vec3 verts[3];
