@@ -53,6 +53,7 @@ public:
 	PointLight(RGB illumination, double falloff, double deadDistance);
 	const RGB getColor(vec4 & p);
     void setPosition(vec4 pos);
+    vec4 getPos() {return _pos; }
     void getIncidenceVector(vec4 & position, vec3 & returnValue);
 	Ray getShadowRay(vec4 & position, bool & useDist);
 private:

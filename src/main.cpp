@@ -59,8 +59,13 @@ RGB traceRay(Ray & ray, int depth) {
             vec3 l_dir; light->getIncidenceVector(point, l_dir);
             vec3 p(point);
             double t_l;
-            Ray light_ray(p, l_dir, 0.1);
-            double t_max = light_ray.computeT(point);
+            vec3 to_light = -l_dir;
+            bool use_dist;
+            Ray light_ray = light->getShadowRay(point, use_dist);
+            double t_max = numeric_limits<float>::infinity();
+            if (PointLight* point_light = dynamic_cast<PointLight*>(light)) {
+                t_max = light_ray.computeT(vec3(point_light->getPos()));
+            }
             if (world->intersect(light_ray, t_l) == nullptr || t_l >= t_max) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d = viewport->getViewVector(p);
@@ -75,7 +80,10 @@ RGB traceRay(Ray & ray, int depth) {
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
     }
-    retColor.clip(1.0);
+    if (retColor[RED] > 1.0 || retColor[BLUE] > 1.0 || retColor[GREEN] > 1.0) {
+        retColor.scaleToMax(1.0);
+    }
+
     return retColor;
 }
 

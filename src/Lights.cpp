@@ -79,7 +79,7 @@ void PointLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
 Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {
     vec3 start(position);
     vec3 end(_pos);
-    return Ray(start, end, 0.0);
+    return Ray(start, end, 0.1);
 }
 
 
@@ -100,5 +100,5 @@ void DirectionalLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
 Ray DirectionalLight::getShadowRay(vec4 & position, bool & useDist) {
     vec3 start(position);
     vec3 end(-1 * _dir);
-    return Ray(start, end, 0.0);
+    return Ray(start, end, 0.1);
 }
