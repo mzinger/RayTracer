@@ -6,7 +6,7 @@
 	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 20 ) (msm 1 ) (mt 0 ) (mtn 1 ))
 (Material matWHITE
 	(color 0.75 0.75 0.75 )
-	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1 ))
+	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 1.0 ) (mtn 1 ))
 (Material matGlass
 	(color 0.75 0.75 0.75 )
 	(ma 0.0 ) (ml 0.0 ) (ms 0.2 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1 ))
