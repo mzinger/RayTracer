@@ -67,7 +67,10 @@ RGB traceRay(Ray & ray, int depth) {
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
     }
-    retColor.clip(1.0);
+    if (retColor[RED] > 1.0 || retColor[BLUE] > 1.0 || retColor[GREEN] > 1.0) {
+        retColor.scaleToMax(1.0);
+    }
+
     return retColor;
 }
 
