@@ -20,29 +20,13 @@ Scene * scene;
 // Here you raycast a single ray, calculating the color of this ray.
 RGB traceRay(Ray & ray, int depth) {
     RGB retColor(0,0,0);
-    //YOUR CODE HERE!!!
-
-	//Use the "world" global variable to access the primitives and lights in the input file.
-	// write methods on your primitives and lights to help you.
-
-
-    //Please be sure to read the following classes in algebra3.h:
-    // - Color
-    // - Point (useful for storing sample information)
-    // - Material
-    // - Ray
-
-
-	//IMPORTANT:
-	//Please start all bounce rays at a t value of 0.1 - this has the effect of slightly offsetting
-	//bounce rays from the surface they're bouncing from, and prevents bounce rays from being occluded by their own surface.
-
     
     double t;
     Primitive* intersecting = world->intersect(ray, t);
     if (intersecting != nullptr) {
         //return intersecting->getColor();
         vec4 point = ray.getPos(t);
+        vec3 p(point);
         vec3 n(intersecting->calculateNormal(point));
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
@@ -50,9 +34,7 @@ RGB traceRay(Ray & ray, int depth) {
             (1 - intersecting->getMaterial().getMSM()) * RGB(1, 1, 1);
             Light* light = *light_it;
             vec3 l_dir; light->getIncidenceVector(point, l_dir);
-            vec3 p(point);
             double t_l;
-            vec3 to_light = -l_dir;
             bool use_dist;
             Ray light_ray = light->getShadowRay(point, use_dist);
             double t_max = numeric_limits<float>::infinity();
@@ -72,6 +54,16 @@ RGB traceRay(Ray & ray, int depth) {
         }
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
+        
+        // Reflection (bouncing ray)
+        // TODO: Mt is a property of refraction, not reflection. Parse the reflection index.
+        if (depth > 0 && intersecting->getMaterial().getMT() > 0.0) {
+            vec3 view_direction = vec3(ray.direction(), VW);
+            vec3 bounce_direction = view_direction - 2 * (view_direction * n) * n;
+            Ray bounceRay(p, bounce_direction, 0.1);
+            RGB bounceColor = traceRay(bounceRay, depth - 1);
+            retColor += intersecting->getMaterial().getMT() * bounceColor;
+        }
     }
     if (retColor[RED] > 1.0 || retColor[BLUE] > 1.0 || retColor[GREEN] > 1.0) {
         retColor.scaleToMax(1.0);
@@ -93,7 +85,7 @@ void renderWithRaycasting() {
         c = RGB(0,0,0);
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
-        c += traceRay(ray, 0);
+        c += traceRay(ray, 3);
         film->expose(c, sample);
     }
 	film->bakeAndSave();

@@ -1,16 +1,16 @@
 (Material sphere1mat
     (color .4 .5 .9)
-    (ma .1) (ml .5) (ms .5) (msp 150) (msm 1) (mt 0) (mtn 1)
+    (ma .1) (ml .5) (ms .5) (msp 150) (msm 1) (mt 0.5) (mtn 1)
 )
 
 (Material sphere2mat
     (color .9 .4 .5)
-    (ma .4) (ml .2) (ms .5) (msp 20) (msm 0) (mt 0) (mtn 1)
+    (ma .4) (ml .2) (ms .5) (msp 20) (msm 0) (mt 0.5) (mtn 1)
 )
 
 (Material sphere3mat
     (color .5 .9 .4)
-    (ma .5) (ml .5) (ms .3) (msp 4) (msm .5) (mt 0) (mtn 1)
+    (ma .5) (ml .5) (ms .3) (msp 4) (msm .5) (mt 0.5) (mtn 1)
 )
 
 (Sphere sph1 (radius 2) (material sphere1mat))
