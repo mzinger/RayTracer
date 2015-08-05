@@ -1,4 +1,5 @@
 #include "main.h"
+#include <ctime>
 
 #include "CS148/Scene.h"
 
@@ -62,14 +63,14 @@ RGB traceRay(Ray & ray, int depth) {
         
         // Reflection (bouncing ray)
         // TODO: Mt is a property of refraction, not reflection. Parse the reflection index.
-        if (depth > 0 && intersecting->getMaterial().getMS() > 0.0) {
+        if (depth > 0 && intersecting->getMaterial().getMT() > 0.0) {
             vec3 view_direction = -1 * vec3(ray.direction(), VW);
             view_direction.normalize();
             vec3 bounce_direction = 2 * (n * view_direction) * n - view_direction;
             vec3 end = p + bounce_direction;
             Ray bounceRay(p, end, 0.1);
             RGB bounceColor = traceRay(bounceRay, depth - 1);
-            retColor += intersecting->getMaterial().getMS() * bounceColor;
+            retColor += intersecting->getMaterial().getMT() * bounceColor;
         }
     }
     retColor.clip(1);
@@ -89,7 +90,7 @@ void renderWithRaycasting() {
         c = RGB(0,0,0);
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
-        c += traceRay(ray, 1);
+        c += traceRay(ray, 3);
         ++rayNum;
         film->expose(c, sample);
     }
@@ -181,7 +182,6 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
         Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
         int num = 0;
         for (vector<OBJTriangle*>::iterator it = t->triangles.begin(); it != t->triangles.end(); ++it) {
-            if (num > 500) break;
             ++num;
             Triangle *tri = new Triangle(
                                 t->vertices[ (**it).ind[0] ]->pos,
@@ -191,7 +191,6 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
             world->addPrimitive(tri);
         }
     }
-    //world->PreprocessToBHVTree();
 }
 
 //-------------------------------------------------------------------------------
@@ -256,6 +255,8 @@ void InitOpenGL(int argc,char** argv, Film* film) {
 
 /// Initialize the environment
 int main(int argc,char** argv) {
+    const clock_t begin_time = clock();
+    
     if (argc != 3) {
         cout << "USAGE: raytracer scene.scd output.png" << endl;
         exit(1);
@@ -268,9 +269,14 @@ int main(int argc,char** argv) {
     viewToWorld = identity3D();
     world = new World();
     sceneToWorld(scene->getRoot(), identity3D(), 0);
+    if (USE_ACCELERATION_INDEX) {
+        world->PreprocessToBHVTree();
+        cout << "Created acceleration structure." << endl;
+    }
     cout << "Imported Scene File." << endl;
     world->printStats();
     renderWithRaycasting();
+    cout << "Time taken : " << float(clock() - begin_time)/CLOCKS_PER_SEC << endl;
 }
 
 

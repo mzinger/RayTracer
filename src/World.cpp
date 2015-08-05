@@ -9,6 +9,7 @@
 #include "World.h"
 
 World::World() {
+    _bvhTree = NULL;
 }
 
 World::~World() {
@@ -18,12 +19,18 @@ World::~World() {
 Primitive* World::intersect(Ray & r, double & t) {
     t = std::numeric_limits<double>::max();
     Primitive* result = nullptr;
-    for (auto* primitive : _primitives) {
-        double curr_t = primitive->intersect(r);
-        if (curr_t < t && curr_t > r.getMinT()) {
-            t = curr_t;
-            result = primitive;
+    if (_bvhTree == NULL) {
+        // Linear lookup over primitives for intersection.
+        for (auto* primitive : _primitives) {
+            double curr_t = primitive->intersect(r);
+            if (curr_t < t && curr_t > r.getMinT()) {
+                t = curr_t;
+                result = primitive;
+            }
         }
+    } else {
+        // Traverse the BVHTree index to compute intersections efficiently
+        result = _bvhTree->intersect(r, t);
     }
     return result;
 }
@@ -53,6 +60,7 @@ vector<Light*>::const_iterator World::getLightsEndIterator() {
 }
 
 void World::PreprocessToBHVTree() {
+    cout << "!!! " << _primitives.size() << endl;
     _bvhTree = new BVHNode(_primitives, 0);  // start splittling from X axes.
 }
 

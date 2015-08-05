@@ -40,7 +40,7 @@ private:
     vector<Primitive*> _primitives;
     vector<Light*> _lights;
     AmbientLight _ambientLight;
-    Primitive* _bvhTree;
+    BVHNode* _bvhTree;
 };
 
 

@@ -31,6 +31,7 @@ public:
         return _topRight;
     }
     Box combine(Box& other);
+    bool intersect(Ray& ray);
 protected:
     vec3 _bottomLeft;
     vec3 _topRight;
@@ -39,7 +40,6 @@ protected:
 class Primitive {
 protected:
     Primitive(RGB & c, Material & m, mat4 modelToWorld); //Primitives are an abstract class
-    Primitive();  // only use for bounding boxes.
 public:
     virtual ~Primitive();
 
@@ -98,17 +98,21 @@ private:
     vec3 verts[3];
 };
 
-class BVHNode : public Primitive {
+class BVHNode {
 public:
     BVHNode(vector<Primitive*>& primitives, int AXIS);
-    /* returns positive values if intersection, otherwise -ve values */
-    double intersect(Ray& r);
-    /* irrelevant */
-    vec3 calculateNormal(vec4 & position) {
-        return vec3(0, 0, 0);
+
+    // Returns the primitive in the subtree rooted at this node that fist intersects a ray or NULL if no intersection.
+    Primitive* intersect(Ray& r, double& t);
+
+    Box boundingBox() {
+        return _boundingBox;
     }
-    Primitive* left_child;
-    Primitive* right_child;
+
+    BVHNode* _left_child;
+    BVHNode* _right_child;
+    Primitive* _primitive;  // if this is a leaf node.
+    Box _boundingBox;
 };
 
 #endif /* PRIMITIVE_H_ */

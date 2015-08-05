@@ -1,6 +1,6 @@
 (Material mesh1mat
     (color .7 .7 .7)
-    (ma .1) (md .3) (ms .7) (msp 100) (msm 1) (mt 0) (mtn 1)
+    (ma .1) (ml .3) (ms .7) (msp 100) (msm 1) (mt 0) (mtn 1)
 )
 
 (Include mesh "teapot.obj" (material mesh1mat))

@@ -14,13 +14,6 @@ Primitive::Primitive(RGB & c, Material & m, mat4 modelToWorld) {
     _worldToModel = modelToWorld.inverse();
 }
 
-Primitive::Primitive() {
-    _c = RGB(1, 1, 1);
-    _modelToWorld = identity3D();
-    _worldToModel = identity3D();
-}
-
-
 Primitive::~Primitive() {
 }
 
@@ -110,7 +103,7 @@ double Triangle::intersect(Ray & ray) {
 
 vec3 Triangle::calculateNormal(vec4 & position) {
     // normal is same at all positions.
-    vec3 normal = (verts[1]- verts[0]) ^ (verts[2] - verts[0]);
+    vec3 normal = (verts[2]- verts[0]) ^ (verts[1] - verts[0]);
     normal = _worldToModel.transpose() * vec4(normal, 0);
     return (vec3(normal, VW)).normalize();
 }
@@ -159,18 +152,49 @@ Box Box::combine(Box& other) {
     return Box(vec3(min_x, min_y, min_z), vec3(max_x, max_y, max_z));
 }
 
-BVHNode::BVHNode(vector<Primitive*>& primitives, int AXIS) : Primitive() {
+bool Box::intersect(Ray& ray) {
+    vec3 dir = vec3(ray.direction(), VW);
+    vec3 start = ray.start();
+    double a = 1/dir[0], b = 1/dir[1], c = 1/dir[2];
+    double t_x_min, t_x_max, t_y_min, t_y_max, t_z_min, t_z_max;
+    if (a >= 0) {
+        t_x_min = a * (_bottomLeft[0] - start[0]);
+        t_x_max = a * (_topRight[0] - start[0]);
+    } else {
+        t_x_min = a * (_topRight[0] - start[0]);
+        t_x_max = a * (_bottomLeft[0] - start[0]);
+    }
+    if (b >= 0) {
+        t_y_min = b * (_bottomLeft[1] - start[1]);
+        t_y_max = b * (_topRight[1] - start[1]);
+    } else {
+        t_y_min = b * (_topRight[1] - start[1]);
+        t_y_max = b * (_bottomLeft[1] - start[1]);
+    }
+    if (c >= 0) {
+        t_z_min = c * (_bottomLeft[2] - start[2]);
+        t_z_max = c * (_topRight[2] - start[2]);
+    } else {
+        t_z_min = c * (_topRight[2] - start[2]);
+        t_z_max = c * (_bottomLeft[2] - start[2]);
+    }
+    if ((t_x_min > t_y_max) || (t_x_max < t_y_min) ||
+        (t_y_min > t_z_max) || (t_y_max < t_z_min) ||
+        (t_x_min > t_z_max) || (t_x_max < t_z_min)) {
+            return false;
+    }
+    return true;
+}
+
+BVHNode::BVHNode(vector<Primitive*>& primitives, int AXIS) {
+    _primitive = NULL;
     int N = primitives.size();
     assert (N >=1);
     if (N==1) {
-        left_child = primitives[0];
-        right_child = NULL;
-        _boundingBox = left_child->boundingBox();
-    } else if (N == 2) {
-        left_child = primitives[0];
-        right_child = primitives[1];
-        Box bb = right_child->boundingBox();
-        _boundingBox = left_child->boundingBox().combine(bb);
+        _primitive = primitives[0];
+        _left_child = NULL;
+        _right_child = NULL;
+        _boundingBox = _primitive->boundingBox();
     } else {
         Box bb = Box(primitives);
         double midpoint = (bb.bottomLeft()[AXIS] + bb.topRight()[AXIS]) / 2;
@@ -193,13 +217,55 @@ BVHNode::BVHNode(vector<Primitive*>& primitives, int AXIS) : Primitive() {
                 }
             }
         }
-        left_child = new BVHNode(left_list, (AXIS + 1)%3);
-        right_child = new BVHNode(right_list, (AXIS + 1)%3);
-        bb = right_child->boundingBox();
-        _boundingBox = left_child->boundingBox().combine(bb);
+        _left_child = NULL; _right_child = NULL;
+        if (left_list.size() > 0 && right_list.size() > 0) {
+            _left_child = new BVHNode(left_list, (AXIS + 1)%3);
+            _right_child = new BVHNode(right_list, (AXIS + 1)%3);
+            _boundingBox = _right_child->boundingBox();
+            _boundingBox = _left_child->boundingBox().combine(_boundingBox);
+        } else if (left_list.size() > 0 && right_list.size() == 0) {
+            _left_child = new BVHNode(left_list, (AXIS + 1)%3);
+            _boundingBox = _left_child->boundingBox();
+        } else if (left_list.size() == 0 && right_list.size() > 0) {
+            _right_child = new BVHNode(right_list, (AXIS + 1)%3);
+            _boundingBox = _right_child->boundingBox();
+        } else {
+            // Cannnot happen.
+            assert(false);
+        }
     }
 }
 
-double BVHNode::intersect(Ray & ray) {
-    
+Primitive* BVHNode::intersect(Ray& ray, double& t) {
+    if (_primitive != NULL) {
+        // Leaf node
+        double curr_t = _primitive->intersect(ray);
+        if (curr_t < std::numeric_limits<double>::max() && curr_t > ray.getMinT()) {
+            t = curr_t;
+            return _primitive;
+        }
+    }
+    if (!_boundingBox.intersect(ray)) return NULL;
+    double t_l, t_r;
+    Primitive* left_result = NULL;
+    Primitive* right_result = NULL;
+    if (_left_child != NULL) {
+        left_result = _left_child->intersect(ray, t_l);
+    }
+    if (_right_child != NULL) {
+        right_result = _right_child->intersect(ray, t_r);
+    }
+    if (left_result == NULL && right_result == NULL) {
+        t = std::numeric_limits<double>::max();
+        return NULL;
+    } else if (left_result == NULL) {
+        t = t_r;
+        return right_result;
+    } else if (right_result == NULL) {
+        t = t_l;
+        return left_result;
+    }
+    // Both subtrees have interection. Pick the one in front.
+    t = MIN(t_l, t_r);
+    return t_l < t_r ? left_result : right_result;
 }
