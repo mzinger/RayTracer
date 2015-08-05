@@ -1,12 +1,12 @@
 (Material matRED
 	(color 0.75 0.25 0.25 )
-	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 150 ) (msm 1 ) (mt 0 ) (mtn 1 ))
+	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 150 ) (msm 1 ) (mt 0.2 ) (mtn 1 ))
 (Material matBLUE
 	(color 0.25 0.25 0.75 )
-	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 20 ) (msm 1 ) (mt 0 ) (mtn 1 ))
+	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 20 ) (msm 1 ) (mt 0.2 ) (mtn 1 ))
 (Material matWHITE
 	(color 0.75 0.75 0.75 )
-	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 1.0 ) (mtn 1 ))
+	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 0.2 ) (mtn 1 ))
 (Material matGlass
 	(color 0.75 0.75 0.75 )
 	(ma 0.0 ) (ml 0.0 ) (ms 0.2 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1 ))

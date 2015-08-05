@@ -39,7 +39,7 @@ void Film::expose(RGB c, Sample & s) {
     _data[index] = (_data[index]*_numSamples[index] + (FloatRGB) c) / (_numSamples[index]+1);
     ++_numSamples[index];
     _counter = (_counter + 1) % 5000;
-    if (_counter == 0 && OPENGL_RENDER) {  // only render every 100th exposure
+    if (_counter == 0 && OPENGL_RENDER) {  // only render every nth exposure
         BindTexture();
         glutPostRedisplay();
         glutMainLoopEvent();

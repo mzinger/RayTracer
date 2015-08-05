@@ -28,7 +28,7 @@
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-#define RAYS_PER_PIXEL 1
+#define RAYS_PER_PIXEL 5
 
 #define OPENGL_RENDER (1)
 

@@ -30,11 +30,9 @@ RGB traceRay(Ray & ray, int depth) {
         cout << (int)percent_done << " % done" << endl;
     }
     if (intersecting != nullptr) {
-        //return intersecting->getColor();
         vec4 point = ray.getPos(t);
         vec3 p(point);
         vec3 n(intersecting->calculateNormal(point));
-        cout << n << endl;
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
             RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor() +
@@ -64,18 +62,17 @@ RGB traceRay(Ray & ray, int depth) {
         
         // Reflection (bouncing ray)
         // TODO: Mt is a property of refraction, not reflection. Parse the reflection index.
-        if (depth > 0 && intersecting->getMaterial().getMT() > 0.0) {
-            vec3 view_direction = vec3(ray.direction(), VW);
-            vec3 bounce_direction = view_direction - 2 * (view_direction * n) * n;
-            Ray bounceRay(p, bounce_direction, 0.1);
+        if (depth > 0 && intersecting->getMaterial().getMS() > 0.0) {
+            vec3 view_direction = -1 * vec3(ray.direction(), VW);
+            view_direction.normalize();
+            vec3 bounce_direction = 2 * (n * view_direction) * n - view_direction;
+            vec3 end = p + bounce_direction;
+            Ray bounceRay(p, end, 0.1);
             RGB bounceColor = traceRay(bounceRay, depth - 1);
-            retColor += intersecting->getMaterial().getMT() * bounceColor;
+            retColor += intersecting->getMaterial().getMS() * bounceColor;
         }
     }
-    if (retColor[RED] > 1.0 || retColor[BLUE] > 1.0 || retColor[GREEN] > 1.0) {
-        retColor.scaleToMax(1.0);
-    }
-
+    retColor.clip(1);
     return retColor;
 }
 
@@ -92,7 +89,7 @@ void renderWithRaycasting() {
         c = RGB(0,0,0);
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
-        c += traceRay(ray, 0);
+        c += traceRay(ray, 1);
         ++rayNum;
         film->expose(c, sample);
     }

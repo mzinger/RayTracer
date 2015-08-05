@@ -40,8 +40,8 @@ bool Viewport::getSample(Sample & s) {
         _y += 1;
         if (_y > _pixelsHigh) {
             _y -= _pixelsHigh;
-            _x = (rand() % 99) / 100.0;
-            _y = (rand() % 99) / 100.0;
+            _x = (rand() % 101) / 100.0;
+            _y = (rand() % 101) / 100.0;
             _raysPerPixel--;
             if (_raysPerPixel == 0) {
                 return false;
