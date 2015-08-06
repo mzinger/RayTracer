@@ -35,6 +35,7 @@ public:
 	
 	void printStats();
     void PreprocessToBHVTree();
+    void PreprocessTriangleNormals();
 
 private:
     vector<Primitive*> _primitives;

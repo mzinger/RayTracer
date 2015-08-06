@@ -61,7 +61,6 @@ public:
     void setMaterial(Material & m);
     const RGB& getColor();
     const Material& getMaterial();
-
 protected:
 	mat4 _modelToWorld;
 	mat4 _worldToModel;
@@ -87,6 +86,7 @@ private:
 };
 
 class Triangle : public Primitive {
+    friend class World;
 public:
     Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w);
 
@@ -96,6 +96,9 @@ public:
 
 private:
     vec3 verts[3];
+    vec3 _vertexNormals[3];
+    vec3 _normal;
+    bool _verticesHaveNormals;
 };
 
 class BVHNode {

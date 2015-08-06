@@ -273,6 +273,10 @@ int main(int argc,char** argv) {
         world->PreprocessToBHVTree();
         cout << "Created acceleration structure." << endl;
     }
+    if (USE_VERTEX_NORMALS) {
+        world->PreprocessTriangleNormals();
+        cout << "Processed triangles to assign vertex normals." << endl;
+    }
     cout << "Imported Scene File." << endl;
     world->printStats();
     renderWithRaycasting();
