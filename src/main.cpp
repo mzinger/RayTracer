@@ -45,81 +45,40 @@ RGB refractionColor(vec3& direction, double refraction_ratio, vec3& point, const
     if (depth > 0) {
         if (refract(direction, normal, refraction_ratio, refraction_direction)) {
             vec3 end = point + refraction_direction;
-            refraction_direction = point + refraction_direction;
             Ray refracting_ray(point, end, 0.1);
             return traceRay(refracting_ray, depth  - 1);
         }
     }
     return RGB(0,0,0);
-    /*
-    
-    
-    if (depth == 0) {
-        return RGB(0,0,0);
-    }
-    vec3 t;
-    double c;
-    double k;
-    RGB refraction_color(0,0,0);
-    vec3 direction = -vec3(view_ray.direction(), VW);
-    direction.normalize();
-    if (direction * normal < 0) {
-        refract(direction, normal, intersecting.getMaterial().getMTN(), t);
-        c = -direction * normal;
-        k = 0.1;
-    } else {
-        k = intersecting.getMaterial().getMT();
-        if (refract(direction, normal * -1, 1/intersecting.getMaterial().getMTN(), t)) {
-            c = t * normal;
-            cout << "Refact!! " << c << endl;
-        } else {
-            return k * reflectionColor(view_ray, point, normal, depth);
-        }
-    }
-    if (k <= 0) {
-        return RGB(0,0,0);
-    }
-    double r = pow((intersecting.getMaterial().getMTN() - 1), 2) / pow((intersecting.getMaterial().getMTN() + 1), 2);
-    r += (1-r) * pow(1-c, 5);
-    double r_tag = 1 - r;
-    vec3 refractive_direcion = point + t;
-    Ray refractive_ray(point, refractive_direcion, 0.1);
-    return k * r * reflectionColor(view_ray, point, normal, depth) + k * r_tag * traceRay(refractive_ray, depth - 1);
-     */
+
 }
 
 RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& point, const vec3& normal, int depth) {
     if (depth > 0 && intersecting.getMaterial().getMT()) {
+        RGB color = reflectionColor(view_ray, point, normal, depth);
+        if (USE_REFRACTION) {
+            vec3 direction = vec3(view_ray.direction(), VW);
+            direction.normalize();
         
-        vec3 direction = vec3(view_ray.direction(), VW);
-        direction.normalize();
+            double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
+            vec3 normal_to_use(normal);
+            if (direction * normal < 0) {
+                refraction_ratio = 1 / refraction_ratio;
+            }
+
+            vec3 refractDirection;
+            RGB refractColor = refractionColor(direction, refraction_ratio, point, normal, depth, refractDirection);
+            refractDirection.normalize();
         
-        double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
-        vec3 normal_to_use(normal);
-        if (direction * normal < 0) {
-            refraction_ratio = 1 / refraction_ratio;
-            normal_to_use = -normal;
+            double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
+            double r0 = pow((refraction_ratio - 1) / (refraction_ratio + 1), 2);
+            double r = r0 + (1-r0)*pow(1-c, 5);
+        
+            color = r * color + (1-r) * refractColor;
         }
-
-        vec3 refractDirection;
-        RGB refractColor = refractionColor(direction, refraction_ratio, point, normal, depth, refractDirection);
-        //refractDirection.normalize();
-
-        RGB reflectColor = reflectionColor(view_ray, point, normal, depth);
-        
-        cout << refractDirection << endl;
-        
-        double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
-        
-        double r0 = pow((refraction_ratio - 1) / (refraction_ratio + 1), 2);
-        double r = r0 + (1-r0)*pow(1-c, 5);
-        
-        //r = 1.0;//max(r*100, 1.0);
-        //r = 0;
-        
-        return intersecting.getMaterial().getMT() * (r * reflectColor + (1-r) * refractColor);
-    } else {
-        cout << "===" << endl;
+        color *= intersecting.getMaterial().getMT();
+        color.clip(1.0);
+        return color;
     }
     return RGB(0,0,0);
 }
