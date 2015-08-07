@@ -19,4 +19,6 @@
 #include "Lights.h"
 //#include <GLUT/glut.h> /* Header File For The GLut Library*/
 
+RGB traceRay(Ray & ray, int depth);
+
 #endif /* MAIN_H_ */

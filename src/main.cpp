@@ -19,6 +19,111 @@ Scene * scene;
 float rayNum = 0;
 float last_percent = 0;
 //-------------------------------------------------------------------------------
+bool refract(const vec3& d, const vec3& n, double refractive_index, vec3& t) {
+    double disc = 1 - ((1 - pow(d * n, 2)) / pow(refractive_index, 2));
+    if (disc < 0) {
+        // Total internal refraction
+        return false;
+    }
+    t = ((d - n * (d * n)) / refractive_index) - n * sqrt(disc);
+    return true;
+}
+
+RGB reflectionColor(Ray& view_ray, vec3& point, const vec3& normal, int depth) {
+    if (depth > 0) {
+        vec3 view_direction = -1 * vec3(view_ray.direction(), VW);
+        view_direction.normalize();
+        vec3 bounce_direction = 2 * (normal * view_direction) * normal - view_direction;
+        vec3 end = point + bounce_direction;
+        Ray bounceRay(point, end, 0.1);
+        return traceRay(bounceRay, depth - 1);
+    }
+    return RGB(0,0,0);
+}
+
+RGB refractionColor(vec3& direction, double refraction_ratio, vec3& point, const vec3& normal, int depth, vec3& refraction_direction) {
+    if (depth > 0) {
+        if (refract(direction, normal, refraction_ratio, refraction_direction)) {
+            vec3 end = point + refraction_direction;
+            refraction_direction = point + refraction_direction;
+            Ray refracting_ray(point, end, 0.1);
+            return traceRay(refracting_ray, depth  - 1);
+        }
+    }
+    return RGB(0,0,0);
+    /*
+    
+    
+    if (depth == 0) {
+        return RGB(0,0,0);
+    }
+    vec3 t;
+    double c;
+    double k;
+    RGB refraction_color(0,0,0);
+    vec3 direction = -vec3(view_ray.direction(), VW);
+    direction.normalize();
+    if (direction * normal < 0) {
+        refract(direction, normal, intersecting.getMaterial().getMTN(), t);
+        c = -direction * normal;
+        k = 0.1;
+    } else {
+        k = intersecting.getMaterial().getMT();
+        if (refract(direction, normal * -1, 1/intersecting.getMaterial().getMTN(), t)) {
+            c = t * normal;
+            cout << "Refact!! " << c << endl;
+        } else {
+            return k * reflectionColor(view_ray, point, normal, depth);
+        }
+    }
+    if (k <= 0) {
+        return RGB(0,0,0);
+    }
+    double r = pow((intersecting.getMaterial().getMTN() - 1), 2) / pow((intersecting.getMaterial().getMTN() + 1), 2);
+    r += (1-r) * pow(1-c, 5);
+    double r_tag = 1 - r;
+    vec3 refractive_direcion = point + t;
+    Ray refractive_ray(point, refractive_direcion, 0.1);
+    return k * r * reflectionColor(view_ray, point, normal, depth) + k * r_tag * traceRay(refractive_ray, depth - 1);
+     */
+}
+
+RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& point, const vec3& normal, int depth) {
+    if (depth > 0 && intersecting.getMaterial().getMT()) {
+        
+        vec3 direction = vec3(view_ray.direction(), VW);
+        direction.normalize();
+        
+        double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
+        vec3 normal_to_use(normal);
+        if (direction * normal < 0) {
+            refraction_ratio = 1 / refraction_ratio;
+            normal_to_use = -normal;
+        }
+
+        vec3 refractDirection;
+        RGB refractColor = refractionColor(direction, refraction_ratio, point, normal, depth, refractDirection);
+        //refractDirection.normalize();
+
+        RGB reflectColor = reflectionColor(view_ray, point, normal, depth);
+        
+        cout << refractDirection << endl;
+        
+        double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
+        
+        double r0 = pow((refraction_ratio - 1) / (refraction_ratio + 1), 2);
+        double r = r0 + (1-r0)*pow(1-c, 5);
+        
+        //r = 1.0;//max(r*100, 1.0);
+        //r = 0;
+        
+        return intersecting.getMaterial().getMT() * (r * reflectColor + (1-r) * refractColor);
+    } else {
+        cout << "===" << endl;
+    }
+    return RGB(0,0,0);
+}
+
 // Here you raycast a single ray, calculating the color of this ray.
 RGB traceRay(Ray & ray, int depth) {
     RGB retColor(0,0,0);
@@ -61,17 +166,7 @@ RGB traceRay(Ray & ray, int depth) {
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
         
-        // Reflection (bouncing ray)
-        // TODO: Mt is a property of refraction, not reflection. Parse the reflection index.
-        if (depth > 0 && intersecting->getMaterial().getMT() > 0.0) {
-            vec3 view_direction = -1 * vec3(ray.direction(), VW);
-            view_direction.normalize();
-            vec3 bounce_direction = 2 * (n * view_direction) * n - view_direction;
-            vec3 end = p + bounce_direction;
-            Ray bounceRay(p, end, 0.1);
-            RGB bounceColor = traceRay(bounceRay, depth - 1);
-            retColor += intersecting->getMaterial().getMT() * bounceColor;
-        }
+        retColor += combineReflectionRefraction(ray, *intersecting, p, n, depth);
     }
     retColor.clip(1);
     return retColor;
@@ -90,7 +185,7 @@ void renderWithRaycasting() {
         c = RGB(0,0,0);
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
-        c += traceRay(ray, 3);
+        c += traceRay(ray, 5);
         ++rayNum;
         film->expose(c, sample);
     }
