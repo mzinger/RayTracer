@@ -25,7 +25,7 @@ bool refract(const vec3& d, const vec3& n, double refractive_index, vec3& t) {
         // Total internal refraction
         return false;
     }
-    t = ((d - n * (d * n)) / refractive_index) - n * sqrt(disc);
+    t = ((d - n * (d * n)) / refractive_index) - (n * sqrt(disc));
     return true;
 }
 
@@ -55,25 +55,26 @@ RGB refractionColor(vec3& direction, double refraction_ratio, vec3& point, const
 
 RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& point, const vec3& normal, int depth) {
     if (depth > 0 && intersecting.getMaterial().getMT()) {
-        RGB color = reflectionColor(view_ray, point, normal, depth);
-        if (USE_REFRACTION) {
-            vec3 direction = vec3(view_ray.direction(), VW);
-            direction.normalize();
+        vec3 normal_to_use(normal);
+        vec3 direction = vec3(view_ray.direction(), VW);
+        direction.normalize();
+        double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
+        if (direction * normal < 0) {
+            refraction_ratio = 1 / refraction_ratio;
+            normal_to_use *= -1;
+        }
         
-            double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
-            vec3 normal_to_use(normal);
-            if (direction * normal < 0) {
-                refraction_ratio = 1 / refraction_ratio;
-            }
+        RGB color = reflectionColor(view_ray, point, normal_to_use, depth);
 
+        if (USE_REFRACTION) {
             vec3 refractDirection;
-            RGB refractColor = refractionColor(direction, refraction_ratio, point, normal, depth, refractDirection);
+            RGB refractColor = refractionColor(direction, refraction_ratio, point, normal_to_use, depth, refractDirection);
             refractDirection.normalize();
         
             double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
             double r0 = pow((refraction_ratio - 1) / (refraction_ratio + 1), 2);
             double r = r0 + (1-r0)*pow(1-c, 5);
-        
+            
             color = r * color + (1-r) * refractColor;
         }
         color *= intersecting.getMaterial().getMT();

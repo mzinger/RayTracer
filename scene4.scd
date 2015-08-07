@@ -12,7 +12,7 @@
 	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1 ))
 (Material matGlass
 	(color 0.75 0.75 0.75 )
-	(ma 0.0 ) (ml 0.2 ) (ms 0.9 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1))
+	(ma 0.0 ) (ml 0.2 ) (ms 0.9 ) (msp 40 ) (msm 1 ) (mt 0.7 ) (mtn 1))
 (Light amb (type 0 ) (color 0.2 0.2 0.2 ) )
 (Light pt1 (type 2 ) (color 20.8 20.8 20.8 )  (falloff 1 )  (deaddistance 0.1 ) )
 (Camera cam
