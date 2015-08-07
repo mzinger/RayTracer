@@ -68,6 +68,9 @@ inline vec3 Sphere::calculateNormal(vec4 & position) {
 
 Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w) : Primitive(col,m,m2w) {
     verts[0] = a; verts[1] = b; verts[2] = c;
+    _verticesHaveNormals = false;
+    _normal = (verts[2]- verts[0]) ^ (verts[1] - verts[0]);
+    //_normal.normalize();
     // Take bounding box of untransformed triangle, transform it and then return its bounding box
     double min_x = MIN(MIN(verts[0][0], verts[1][0]), verts[2][0]);
     double min_y = MIN(MIN(verts[0][1], verts[1][1]), verts[2][1]);
@@ -102,10 +105,36 @@ double Triangle::intersect(Ray & ray) {
 }
 
 vec3 Triangle::calculateNormal(vec4 & position) {
-    // normal is same at all positions.
-    vec3 normal = (verts[2]- verts[0]) ^ (verts[1] - verts[0]);
+    if (!_verticesHaveNormals) {
+        // normal is same at all positions.
+        vec3 normal = _worldToModel.transpose() * vec4(_normal, 0);
+        return vec3(normal, VW).normalize();
+    }
+    // Use barycentric interpolation to compute normals.
+    vec3 v0 = verts[1] - verts[0];
+    vec3 v1 = verts[2] - verts[0];
+    vec3 v2 = vec3(_worldToModel*position) - verts[0];
+    
+    // Compute dot products
+    double dot00 = v0 * v0;
+    double dot01 = v0 * v1;
+    double dot02 = v0 * v2;
+    double dot11 = v1 * v1;
+    double dot12 = v1 * v2;
+    
+    // Compute barycentric coordinates
+    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
+    double alpha = 1 - (beta + gamma);
+    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
+    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    vec3 normal = _normal;
+    if (alpha >= 0 && alpha <= 1 && beta >=0 && beta <=1 && gamma >=0 && gamma <=1) {
+        normal = alpha * _vertexNormals[0] + beta * _vertexNormals[1] + gamma * _vertexNormals[2];
+    }
     normal = _worldToModel.transpose() * vec4(normal, 0);
-    return (vec3(normal, VW)).normalize();
+    return vec3(normal, VW).normalize();
 }
 
 Box::Box (const vector<Primitive*>& primitives) {
