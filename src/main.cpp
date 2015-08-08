@@ -141,9 +141,8 @@ void renderWithRaycasting() {
 
     viewport->resetSampler();
     while(viewport->getSample(sample)) {  //just gets a 2d sample position on the film
-        for (int i = 0; i < RAYS_PER_PIXEL_SAMPLE; i++) {
+        for (Ray ray : viewport->createViewingRays(sample)) {
             c = RGB(0,0,0);
-            ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
             ray.transform(viewToWorld);  //transform this to world space
             // For every ray - choose a random world (for motion blur)
             int rand_num = rand()%MAX_TIME;
@@ -192,7 +191,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
         vec4 LR(f.sides[FRUS_RIGHT], f.sides[FRUS_BOTTOM], -f.sides[FRUS_NEAR], 1.0);
         vec4 UR(f.sides[FRUS_RIGHT], f.sides[FRUS_TOP], -f.sides[FRUS_NEAR], 1.0);
 
-        viewport = new Viewport(eye, LL, UL, LR, UR, IMAGE_WIDTH, IMAGE_HEIGHT);
+        viewport = new Viewport(eye, LL, UL, LR, UR, IMAGE_WIDTH, IMAGE_HEIGHT, localToWorld);
     }
 
     LightInfo l;

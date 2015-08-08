@@ -183,6 +183,11 @@
 	(color 0.975 0.025 0.860920590413 )
 	(ma 0.4 ) (ml 0.8 ) (ms 0.5 ) (msp 50 ) (msm 0.5 ) (mt 0.25 ) (mtn 1 ))
 (Sphere sp_39 (radius 1.5 ) (material helixMat39 ))
+(Material helixMat40
+    (color 0.75 0.45 0.5 )
+    (ma 0.4 ) (ml 0.8 ) (ms 0.5 ) (msp 50 ) (msm 0.5 ) (mt 0.1 ) (mtn 1 ))
+(Sphere sp_40 (radius 1 ) (material helixMat40 ))
+
 (G awesome
 	(I cam1 cam )
 	(I dir1 dir (Xform 0 0 -0.5 0
@@ -191,6 +196,8 @@
 		0 0 0 0 ) )
 	(I amb1 amb )
 	(I pt1_I pt1 (T 2 2 -45 ) )
+    (I pt2_I pt1 (T 2 2 -10 ) )
+
 	(I s_0 sp_0 (T 0.0 6.0 -100 ) )
 	(I s_1 sp_1 (T 1.85410196625 5.70633909777 -98 ) )
 	(I s_2 sp_2 (T 3.52671151375 4.85410196625 -96 ) )
@@ -231,7 +238,9 @@
 	(I s_37 sp_37 (T {-4.85410196625+0.005*t} 3.52671151375 -26 ) )
 	(I s_38 sp_38 (T -3.52671151375 4.85410196625 -24 ) )
 	(I s_39 sp_39 (T -1.85410196625 5.70633909777 -22 ) )
-	(I spGlass_I spGlass (T -2.6 -2.6 -52 ) )
+    (I s_40 sp_40 (T 4 -3 -15 ) )
+
+    (I spGlass_I spGlass (T -2.6 -2.6 -52 ) )
 	(I spB_I spWALL (T 0 -100009.0 -3 ) )
 	(I spT_I spTOP (T 0 100009.0 -3 ) )
 	(I spF_I spWALL (T 0 0 -100100.0 ) )

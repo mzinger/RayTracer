@@ -7,7 +7,26 @@
 
 #include "Viewport.h"
 
-Viewport::Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int height) {
+Viewport::Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int height, mat4 localToWorld) {
+    vec3 a(eye);
+    a[VZ] += DEPTH_OF_FIELD;
+    a[VX] += 100000000.0;
+    
+    vec3 b(eye);
+    b[VZ] += DEPTH_OF_FIELD;
+    b[VX] -= 100000000.0;
+    b[VY] += 50000000.0;
+    
+    vec3 c(eye);
+    c[VZ] += DEPTH_OF_FIELD;
+    c[VX] -= 100000000.0;
+    c[VY] -= 50000000.0;
+    
+    RGB color(0,0,0);
+    Material m;
+    
+    _focalPlane = new Triangle(a, b, c, color, m, localToWorld);
+    
     _eye = eye;	//You should use this for the viewing ray
     _LL = LL;
     _UL = UL;
@@ -52,10 +71,10 @@ bool Viewport::getSample(Sample & s) {
 }
 
 double epsilon() {
-  return 5 * (rand() % 101) / 100000.0 - 0.0005;
+    return -CAMERA_LENS_SIZE + (double)rand() / RAND_MAX * 2 * CAMERA_LENS_SIZE;
 }
 
-Ray Viewport::createViewingRay(Sample & s) {
+vector<Ray> Viewport::createViewingRays(Sample & s) {
     double u = 1.0 * s.x() / _pixelsWide;
     double u_tag = 1.0 - u;
     double v = 1.0 * s.y() / _pixelsHigh;
@@ -63,20 +82,34 @@ Ray Viewport::createViewingRay(Sample & s) {
     
     vec4 p = (((_LL * v_tag) + (_UL * v)) * u_tag) + (((_LR * v_tag) + (_UR * v)) * u);
     
-    vec4 tempEye(_eye);
-    if (USE_DEPTH_OF_FIELD) {
-      tempEye[VX] += epsilon();
-      tempEye[VY] += epsilon();
-      tempEye[VZ] += epsilon();
-    }
-    
-    vec4 direction = p - tempEye;
+    vec4 direction = p - _eye;
     direction[VW] = 1;
 
-    vec3 start(tempEye);
+    vec3 start(_eye);
     vec3 end(-direction);
     
-    Ray result = Ray(start, end, 0.1);
+    Ray viewRay = Ray(start, end, 0.1);
+    
+    vector<Ray> result;
+    if (DEPTH_OF_FIELD) {
+        double t = _focalPlane->intersect(viewRay);
+        if (!t || t ==numeric_limits<float>::infinity()) {
+            cout << "ERROR: no intersection with focal plane " << s.x() << "," << s.y() << endl;
+        
+        }
+        vec3 focal_point = start + t*end;
+        for (int i = 0; i < RAYS_PER_PIXEL_SAMPLE; i++) {
+            vec3 tempStart(start);
+            start[VX] += epsilon();
+            start[VY] += epsilon();
+            start[VZ] += epsilon();
+            vec3 tempEnd(-(focal_point - tempStart));
+            Ray ray(tempStart, focal_point, 0.1);
+            result.push_back(ray);
+        }
+    } else {
+        result.push_back(viewRay);
+    }
     return result;
 }
 

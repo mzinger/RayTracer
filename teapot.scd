@@ -29,7 +29,9 @@
                            0 0 .5 0
                            0 0 0 0)) # points toward (.5,.5,-.5)
     (I amb1 amb)
-    (I tea1 mesh (R 30 1 0 0) (T 0 -2 -12))
+    (I tea1 mesh (R 30 1 0 0) (T 1 2 -12))
+    (I tea2 mesh (R 30 1 0 0) (T -1 -2 -5))
+
     (I pt1 pt (T 2 2 -8))
 )
 

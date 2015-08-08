@@ -9,6 +9,7 @@
 #define VIEWPORT_H_
 
 #include "global.h"
+#include "Primitives.h"
 
 /**
  * Viewport holds all the information about our camera.
@@ -17,7 +18,7 @@
  */
 class Viewport {
 public:
-    Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int height);
+    Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int height, mat4 localToWorld);
     virtual ~Viewport();
 
     /**
@@ -33,7 +34,7 @@ public:
     /**
      * This constructs the ray "r" to be a ray from the eye to the given sample p.
      */
-    Ray createViewingRay(Sample & s);
+    vector<Ray> createViewingRays(Sample & s);
 
     /**
      * Constructs a normalized vector pointing from the given position to the
@@ -59,7 +60,7 @@ private:
 	int _raysPerPixel;
 	int _incPP;
 
-
+    Triangle* _focalPlane;
 };
 
 #endif /* VIEWPORT_H_ */
