@@ -12,7 +12,7 @@ using namespace std;
 //****************************************************
 Viewport * viewport;
 mat4 viewToWorld;
-World * world;
+World* worlds[MAX_TIME];
 Film * film;
 Scene * scene;
 
@@ -29,31 +29,31 @@ bool refract(const vec3& d, const vec3& n, double refractive_index, vec3& t) {
     return true;
 }
 
-RGB reflectionColor(Ray& view_ray, vec3& point, const vec3& normal, int depth) {
+RGB reflectionColor(World* world, Ray& view_ray, vec3& point, const vec3& normal, int depth) {
     if (depth > 0) {
         vec3 view_direction = -1 * vec3(view_ray.direction(), VW);
         view_direction.normalize();
         vec3 bounce_direction = 2 * (normal * view_direction) * normal - view_direction;
         vec3 end = point + bounce_direction;
         Ray bounceRay(point, end, 0.1);
-        return traceRay(bounceRay, depth - 1);
+        return traceRay(bounceRay, world, depth - 1);
     }
     return RGB(0,0,0);
 }
 
-RGB refractionColor(vec3& direction, double refraction_ratio, vec3& point, const vec3& normal, int depth, vec3& refraction_direction) {
+RGB refractionColor(World* world, vec3& direction, double refraction_ratio, vec3& point, const vec3& normal, int depth, vec3& refraction_direction) {
     if (depth > 0) {
         if (refract(direction, normal, refraction_ratio, refraction_direction)) {
             vec3 end = point + refraction_direction;
             Ray refracting_ray(point, end, 0.1);
-            return traceRay(refracting_ray, depth  - 1);
+            return traceRay(refracting_ray, world, depth  - 1);
         }
     }
     return RGB(0,0,0);
 
 }
 
-RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& point, const vec3& normal, int depth) {
+RGB combineReflectionRefraction(World* world, Ray& view_ray, Primitive& intersecting, vec3& point, const vec3& normal, int depth) {
     if (depth > 0 && intersecting.getMaterial().getMT()) {
         vec3 normal_to_use(normal);
         vec3 direction = vec3(view_ray.direction(), VW);
@@ -64,11 +64,11 @@ RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& po
             normal_to_use *= -1;
         }
         
-        RGB color = reflectionColor(view_ray, point, normal_to_use, depth);
+        RGB color = reflectionColor(world, view_ray, point, normal_to_use, depth);
 
         if (USE_REFRACTION) {
             vec3 refractDirection;
-            RGB refractColor = refractionColor(direction, refraction_ratio, point, normal_to_use, depth, refractDirection);
+            RGB refractColor = refractionColor(world, direction, refraction_ratio, point, normal_to_use, depth, refractDirection);
             refractDirection.normalize();
         
             double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
@@ -85,9 +85,8 @@ RGB combineReflectionRefraction(Ray& view_ray, Primitive& intersecting, vec3& po
 }
 
 // Here you raycast a single ray, calculating the color of this ray.
-RGB traceRay(Ray & ray, int depth) {
+RGB traceRay(Ray & ray, World* world, int depth) {
     RGB retColor(0,0,0);
-    
     double t;
     Primitive* intersecting = world->intersect(ray, t);
     float percent_done = rayNum / (IMAGE_HEIGHT*IMAGE_WIDTH*RAYS_PER_PIXEL) * 100;
@@ -126,7 +125,7 @@ RGB traceRay(Ray & ray, int depth) {
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
         retColor += AmbComp;
         
-        retColor += combineReflectionRefraction(ray, *intersecting, p, n, depth);
+        retColor += combineReflectionRefraction(world, ray, *intersecting, p, n, depth);
     }
     retColor.clip(1);
     return retColor;
@@ -145,7 +144,10 @@ void renderWithRaycasting() {
         c = RGB(0,0,0);
     	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
         ray.transform(viewToWorld);  //transform this to world space
-        c += traceRay(ray, 5);
+        // For every ray - choose a random world (for motion blur)
+        int rand_num = rand()%MAX_TIME;
+        World* world = worlds[rand_num];
+        c += traceRay(ray, world, 5);
         ++rayNum;
         film->expose(c, sample);
     }
@@ -156,7 +158,7 @@ void renderWithRaycasting() {
 //-------------------------------------------------------------------------------
 // This traverses the read-in scene file's DAG and builds a list of
 // primitives, lights and the viewport object. See World.h
-void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
+void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time) {
     if (inst == NULL)
         return;
 
@@ -172,7 +174,7 @@ void sceneToWorld(SceneInstance *inst, mat4 localToWorld, int time) {
 
     int ccount = g->getChildCount();
     for (int i = 0; i < ccount; i++) {
-        sceneToWorld(g->getChild(i), localToWorld, 0);
+        sceneToWorld(g->getChild(i), world, localToWorld, time);
     }
 
     CameraInfo f;
@@ -322,18 +324,19 @@ int main(int argc,char** argv) {
     }
     scene = new Scene(argv[1]);
     viewToWorld = identity3D();
-    world = new World();
-    sceneToWorld(scene->getRoot(), identity3D(), 0);
-    if (USE_ACCELERATION_INDEX) {
-        world->PreprocessToBHVTree();
-        cout << "Created acceleration structure." << endl;
-    }
-    if (USE_VERTEX_NORMALS) {
-        world->PreprocessTriangleNormals();
-        cout << "Processed triangles to assign vertex normals." << endl;
+    for (int time = 0; time < MAX_TIME; ++time) {
+        World* world = new World();
+        sceneToWorld(scene->getRoot(), world, identity3D(), time);
+        if (USE_ACCELERATION_INDEX) {
+            world->PreprocessToBHVTree();
+        }
+        if (USE_VERTEX_NORMALS) {
+            world->PreprocessTriangleNormals();
+        }
+        worlds[time] = world;
+        if (time == MAX_TIME - 1) world->printStats();
     }
     cout << "Imported Scene File." << endl;
-    world->printStats();
     renderWithRaycasting();
     cout << "Time taken : " << float(clock() - begin_time)/CLOCKS_PER_SEC << endl;
 }

@@ -44,7 +44,7 @@
     (I pt1 pt (T 0 0 -14))
     (I s1 sph1 (T -2.5 -1.5 -17.0))
     (I s2 sph2 (T 0 4.0 -17))
-    (I s3 sph3 (T 1.5 -1.5 -17.0))
+    (I s3 sph3 (T {1.5+0.01*t} {-1.5+0.01*t} -17.0))
 )
 
 (Render  threespheres)
