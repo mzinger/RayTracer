@@ -28,7 +28,8 @@
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-#define RAYS_PER_PIXEL 1
+#define RAYS_PER_PIXEL 2
+#define RAYS_PER_PIXEL_SAMPLE 4 // relevant if depth of field is on
 
 #define OPENGL_RENDER (1)
 #define USE_ACCELERATION_INDEX (1)

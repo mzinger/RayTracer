@@ -61,7 +61,7 @@ RGB combineReflectionRefraction(World* world, Ray& view_ray, Primitive& intersec
         double refraction_ratio = 1 / intersecting.getMaterial().getMTN();
         if (direction * normal < 0) {
             refraction_ratio = 1 / refraction_ratio;
-            normal_to_use *= -1;
+            //normal_to_use *= -1;
         }
         
         RGB color = reflectionColor(world, view_ray, point, normal_to_use, depth);
@@ -141,15 +141,17 @@ void renderWithRaycasting() {
 
     viewport->resetSampler();
     while(viewport->getSample(sample)) {  //just gets a 2d sample position on the film
-        c = RGB(0,0,0);
-    	ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
-        ray.transform(viewToWorld);  //transform this to world space
-        // For every ray - choose a random world (for motion blur)
-        int rand_num = rand()%MAX_TIME;
-        World* world = worlds[rand_num];
-        c += traceRay(ray, world, 5);
-        ++rayNum;
-        film->expose(c, sample);
+        for (int i = 0; i < RAYS_PER_PIXEL_SAMPLE; i++) {
+            c = RGB(0,0,0);
+            ray = viewport->createViewingRay(sample);  //convert the 2d sample position to a 3d ray
+            ray.transform(viewToWorld);  //transform this to world space
+            // For every ray - choose a random world (for motion blur)
+            int rand_num = rand()%MAX_TIME;
+            World* world = worlds[rand_num];
+            c += traceRay(ray, world, 5);
+            ++rayNum;
+            film->expose(c, sample);
+        }
     }
 	film->bakeAndSave();
 	cout << "Image saved!" << endl;
