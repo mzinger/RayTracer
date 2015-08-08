@@ -52,7 +52,7 @@ bool Viewport::getSample(Sample & s) {
 }
 
 double epsilon() {
-  return (rand() % 101) / 10000.0 - 0.005;
+  return 5 * (rand() % 101) / 100000.0 - 0.0005;
 }
 
 Ray Viewport::createViewingRay(Sample & s) {

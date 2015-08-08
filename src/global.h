@@ -28,12 +28,13 @@
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-#define RAYS_PER_PIXEL 5
+#define RAYS_PER_PIXEL 1
 
 #define OPENGL_RENDER (1)
 #define USE_ACCELERATION_INDEX (1)
 #define USE_VERTEX_NORMALS (1)
 #define USE_REFRACTION (0)
+#define MAX_TIME (100)
 #define USE_DEPTH_OF_FIELD (0)
 
 #endif /* GLOBAL_H_ */
