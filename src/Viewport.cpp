@@ -51,6 +51,10 @@ bool Viewport::getSample(Sample & s) {
     return true;
 }
 
+double epsilon() {
+  return (rand() % 101) / 10000.0 - 0.005;
+}
+
 Ray Viewport::createViewingRay(Sample & s) {
     double u = 1.0 * s.x() / _pixelsWide;
     double u_tag = 1.0 - u;
@@ -59,10 +63,17 @@ Ray Viewport::createViewingRay(Sample & s) {
     
     vec4 p = (((_LL * v_tag) + (_UL * v)) * u_tag) + (((_LR * v_tag) + (_UR * v)) * u);
     
-    vec4 direction = p - _eye;
+    vec4 tempEye(_eye);
+    if (USE_DEPTH_OF_FIELD) {
+      tempEye[VX] += epsilon();
+      tempEye[VY] += epsilon();
+      tempEye[VZ] += epsilon();
+    }
+    
+    vec4 direction = p - tempEye;
     direction[VW] = 1;
 
-    vec3 start(_eye);
+    vec3 start(tempEye);
     vec3 end(-direction);
     
     Ray result = Ray(start, end, 0.1);
