@@ -35,10 +35,10 @@ bool Viewport::getSample(Sample & s) {
     s.setX(_x);
     s.setY(_y);
     _x += 1;
-    if (_x > _pixelsWide) {
+    if (_x > _pixelsWide - 1) {
         _x -= _pixelsWide;
         _y += 1;
-        if (_y > _pixelsHigh) {
+        if (_y > _pixelsHigh - 1) {
             _y -= _pixelsHigh;
             _x = (rand() % 101) / 100.0;
             _y = (rand() % 101) / 100.0;
