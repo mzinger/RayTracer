@@ -70,10 +70,6 @@ bool Viewport::getSample(Sample & s) {
     return true;
 }
 
-double epsilon() {
-    return -CAMERA_LENS_SIZE + (double)rand() / RAND_MAX * 2 * CAMERA_LENS_SIZE;
-}
-
 vector<Ray> Viewport::createViewingRays(Sample & s) {
     double u = 1.0 * s.x() / _pixelsWide;
     double u_tag = 1.0 - u;
