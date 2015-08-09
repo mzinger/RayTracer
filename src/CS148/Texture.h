@@ -9,5 +9,6 @@ struct Texture {
     int _height;
     FloatRGB* _data;
     
+    FloatRGB getValue(double u, double v);
     Texture(string filename);
 };

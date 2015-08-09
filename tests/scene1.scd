@@ -1,15 +1,19 @@
 (Material sphere1mat
     (color .4 .5 .9)
+#    (PerlinBumpMap 0.1 10 10 1 14534)
+    (TextureBumpMap "noise2.png")
     (ma .1) (ml .5) (ms .5) (msp 150) (msm 1) (mt 0.5) (mtn 1)
 )
 
 (Material sphere2mat
     (color .9 .4 .5)
+    (PerlinBumpMap 0.1 500 1 1 122424)
     (ma .4) (ml .2) (ms .5) (msp 20) (msm 0) (mt 0.5) (mtn 1)
 )
 
 (Material sphere3mat
     (color .5 .9 .4)
+    (PerlinBumpMap 0.1 50 5 1 122424)
     (ma .5) (ml .5) (ms .3) (msp 4) (msm .5) (mt 0.5) (mtn 1)
 )
 

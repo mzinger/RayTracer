@@ -2,6 +2,7 @@
 #include <ctime>
 
 #include "CS148/Scene.h"
+#include "CS148/PerlinNoise.h"
 
 GLuint texName;
 
@@ -221,7 +222,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
     MaterialInfo m;
     if (g->computeSphere(r, m, time)) {
         Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
-        Sphere *sph = new Sphere(r, m.color, mat, m.texture, localToWorld);
+        Sphere *sph = new Sphere(r, m.color, mat, m.texture, m.bumpTexture, m.noise, localToWorld);
         world->addPrimitive(sph);
     }
 
@@ -231,7 +232,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
         Triangle *tri = new Triangle(vec3(vert.vertices[0], vert.vertices[1], 0),
                                      vec3(vert.vertices[2], vert.vertices[3], 0),
                                      vec3(vert.vertices[4], vert.vertices[5], 0),
-                                     m.color, mat, m.texture, localToWorld);
+                                     m.color, mat, m.texture, m.bumpTexture, localToWorld);
         world->addPrimitive(tri);
     }
     
@@ -252,7 +253,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
                                   t->vertices[ (*it)->ind[2] ]->pos,
                                   t->textures[ (*it)->texture_ind[2] ]->coords,
                                   t->normals[ (*it)->normal_ind[2] ]->dir,
-                                  m.color, mat, m.texture, localToWorld);
+                                  m.color, mat, m.texture, m.bumpTexture, localToWorld);
             } else if (t->verticesHaveNormal()) {
                 tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
                                    t->normals[ (*it)->normal_ind[0] ]->dir,
@@ -260,7 +261,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
                                    t->normals[ (*it)->normal_ind[1] ]->dir,
                                    t->vertices[ (*it)->ind[2] ]->pos,
                                    t->normals[ (*it)->normal_ind[2] ]->dir,
-                                   m.color, mat, m.texture, localToWorld);
+                                   m.color, mat, m.texture, m.bumpTexture, localToWorld);
             } else if (t->verticesHaveTexture()) {
                 tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
                                    t->textures[ (*it)->texture_ind[0] ]->coords,
@@ -268,12 +269,12 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
                                    t->textures[ (*it)->texture_ind[1] ]->coords,
                                    t->vertices[ (*it)->ind[2] ]->pos,
                                    t->textures[ (*it)->texture_ind[2] ]->coords,
-                                   m.color, mat, m.texture, localToWorld);
+                                   m.color, mat, m.texture, m.bumpTexture, localToWorld);
             } else {
                 tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
                                    t->vertices[ (*it)->ind[1] ]->pos,
                                    t->vertices[ (*it)->ind[2] ]->pos,
-                                   m.color, mat, m.texture, localToWorld);
+                                   m.color, mat, m.texture, m.bumpTexture, localToWorld);
             }
             world->addPrimitive(tri);
         }
@@ -340,8 +341,26 @@ void InitOpenGL(int argc,char** argv, Film* film) {
     glutMainLoopEvent();
 }
 
+void GenerateHeightMap() {
+    PerlinNoise noise(0.1, 10, 5, 1, rand());
+    FreeImage_Initialise();
+    FIBITMAP* _output = FreeImage_Allocate(512, 512, 24);  // Generate 512x512 height map image in grayscale
+    for (int x = 0; x < 512; ++x) {
+        for (int y = 0; y < 512; ++y) {
+            RGBQUAD color;
+            float height = noise.GetHeight(float(x)/512, float(y)/512);
+            color.rgbRed = height * 255;
+            color.rgbGreen = height * 255;
+            color.rgbBlue = height * 255;
+            FreeImage_SetPixelColor(_output, x, y, &color);
+        }
+        FreeImage_Save(FIF_PNG, _output, "heightmap.png");
+    }
+}
+
 /// Initialize the environment
 int main(int argc,char** argv) {
+    //srand (time(NULL));
     const clock_t begin_time = clock();
     
     if (argc != 3) {

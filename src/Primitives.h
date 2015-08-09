@@ -9,9 +9,9 @@
 #define PRIMITIVE_H_
 
 #include "global.h"
-//#include "CS148/Texture.h"
 struct Texture;
 class Primitive;
+class PerlinNoise;
 
 // An axis aligned bounding box.
 class Box {
@@ -40,7 +40,7 @@ protected:
 
 class Primitive {
 protected:
-    Primitive(RGB & c, Material & m, Texture* texture, mat4 modelToWorld); //Primitives are an abstract class
+    Primitive(RGB & c, Material & m, Texture* texture, Texture* bumpTexture, mat4 modelToWorld); //Primitives are an abstract class
 public:
     virtual ~Primitive();
 
@@ -68,13 +68,14 @@ protected:
     Box _boundingBox;
     RGB _c;
     Texture* _texture;
+    Texture* _bumpTexture;
 private:
     Material _m;
 };
 
 class Sphere : public Primitive {
 public:
-    Sphere(double radius, RGB & c, Material & m, Texture* t, mat4 modelToWorld);
+    Sphere(double radius, RGB & c, Material & m, Texture* t, Texture* bumpTexture, PerlinNoise* noise, mat4 modelToWorld);
 
     double intersect(Ray & ray);
     vec3 calculateNormal(vec4 & position);
@@ -84,15 +85,16 @@ public:
 private:
     double _r;
     vec4 _center;
+    PerlinNoise* _noise;
 };
 
 class Triangle : public Primitive {
     friend class World;
 public:
-    Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, mat4 m2w);
-    Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w);
-    Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, mat4 m2w);
-    Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w);
+    Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bumpTexture, mat4 m2w);
+    Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bumpTexture, mat4 m2w);
+    Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, Texture* bumpTexture, mat4 m2w);
+    Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bumpTexture, mat4 m2w);
 
     double intersect(Ray &ray);
     RGB getColor(vec3 position);

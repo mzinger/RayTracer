@@ -12,6 +12,7 @@
 
 #include "algebra3.h"
 #include "Texture.h"
+#include "PerlinNoise.h"
 
 enum {
     MAT_MA,     //ambient
@@ -37,10 +38,11 @@ struct MaterialInfo {
     double k[MAT_NUM_COEFFICIENTS]; //Storage for the material coefficients
     RGB color;
     Texture* texture;
-
+    Texture* bumpTexture;
+    PerlinNoise* noise;
     MaterialInfo() {}
-    MaterialInfo(RGB color, Texture* texture, const double ka, const double kd, const double ks, const double ksp, const double ksm, const double kt, const double ktn)
-        : color(color), texture(texture)
+    MaterialInfo(RGB color, Texture* texture, Texture* bumpTexture, PerlinNoise* noise, const double ka, const double kd, const double ks, const double ksp, const double ksm, const double kt, const double ktn)
+        : color(color), texture(texture), bumpTexture(bumpTexture), noise(noise)
     {
         k[MAT_MA] = ka;
         k[MAT_MD] = kd;

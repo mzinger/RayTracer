@@ -25,7 +25,7 @@ Viewport::Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int 
     RGB color(0,0,0);
     Material m;
     
-    _focalPlane = new Triangle(a, b, c, color, m, NULL, localToWorld);
+    _focalPlane = new Triangle(a, b, c, color, m, NULL, NULL, localToWorld);
     
     _eye = eye;	//You should use this for the viewing ray
     _LL = LL;
@@ -103,7 +103,8 @@ vector<Ray> Viewport::createViewingRays(Sample & s) {
             start[VX] += epsilon();
             start[VY] += epsilon();
             start[VZ] += epsilon();
-            vec3 tempEnd(-(focal_point - tempStart));
+            // TODO(mzinger:) Why is this variable unused ?
+            // vec3 tempEnd(-(focal_point - tempStart));
             Ray ray(tempStart, focal_point, 0.1);
             result.push_back(ray);
         }

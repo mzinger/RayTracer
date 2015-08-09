@@ -6,11 +6,13 @@
  */
 
 #include "Primitives.h"
+#include "CS148/PerlinNoise.h"
 #include "CS148/Texture.h"
 
-Primitive::Primitive(RGB & c, Material & m, Texture* texture, mat4 modelToWorld) {
+Primitive::Primitive(RGB & c, Material & m, Texture* texture, Texture* bumpTexture, mat4 modelToWorld) {
     _c = c;
     _texture = texture;
+    _bumpTexture = bumpTexture;
     _m = m;
     _modelToWorld = modelToWorld;
     _worldToModel = modelToWorld.inverse();
@@ -35,14 +37,14 @@ const Material& Primitive::getMaterial() {
     return _m;
 }
 
-
-Sphere::Sphere(double radius, RGB & c, Material & m, Texture* t, mat4 m2w): Primitive(c,m,t,m2w) {
+Sphere::Sphere(double radius, RGB & c, Material & m, Texture* t, Texture* bt, PerlinNoise* noise, mat4 m2w): Primitive(c,m,t,bt,m2w) {
     _r = radius;
     _center = vec4(0, 0, 0, 1);  // always at origin wrt a transformation.
     // Take bounding box of untransformed sphere, transform it and then return its bounding box
     Box box(vec3(-_r, -_r, -_r), vec3(_r, _r, _r));
     box.transform(_modelToWorld);
     _boundingBox = box;
+    _noise = noise;
 }
 
 RGB Sphere::getColor(vec3 position) {
@@ -82,10 +84,32 @@ double Sphere::intersect(Ray & ray) {
 inline vec3 Sphere::calculateNormal(vec4 & position) {
     vec3 position_t = _worldToModel*position;
     vec3 normal = vec3(_worldToModel.transpose() * vec4(position_t / _r, 0), VW);
-    return normal.normalize();
+    if (_noise == NULL && _bumpTexture == NULL) {
+        return normal.normalize();
+    }
+    // We are doing bump mapping.
+    float theta = acos(position_t[2]/_r);
+    float phi = atan2(position_t[1], position_t[0]);
+    assert(theta >= 0); assert(theta <= M_PI);
+    assert(phi >= -M_PI); assert(phi <= M_PI);
+    if (phi < 0) phi += 2*M_PI;
+    vec2 textureCoord(phi/(2*M_PI), (M_PI-theta)/M_PI);
+    float x_gradient, y_gradient;
+    if (_bumpTexture != NULL) {
+        vec2 indices(textureCoord[0] * _bumpTexture->_width, textureCoord[1] * _bumpTexture->_height);
+        x_gradient = (_bumpTexture->getValue(indices[0]-1, indices[1]) - _bumpTexture->getValue(indices[0]+1, indices[1]))[RED];
+        y_gradient = (_bumpTexture->getValue(indices[0], indices[1]-1) - _bumpTexture->getValue(indices[0], indices[1]+1))[RED];
+    } else {
+        //_noise is not null.
+        x_gradient = _noise->GetHeight(textureCoord[0]-1, textureCoord[1]) - _noise->GetHeight(textureCoord[0]+1, textureCoord[1]);
+        y_gradient = _noise->GetHeight(textureCoord[0], textureCoord[1]-1) - _noise->GetHeight(textureCoord[0], textureCoord[1]+1);
+    }
+    vec3 u(cos(phi), 0, -sin(phi));
+    vec3 v(-cos(theta)*sin(phi), sin(theta), -cos(theta)*cos(phi));
+    return (normal + u*x_gradient + v*y_gradient).normalize();
 }
 
-Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, mat4 m2w) : Primitive(col,m,t,m2w) {
+Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Primitive(col,m,t,bt,m2w) {
     verts[0] = a; verts[1] = b; verts[2] = c;
     _verticesHaveNormals = false;
     _verticesHaveTexture = false;
@@ -103,17 +127,17 @@ Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, 
     _boundingBox = box;
 }
 
-Triangle::Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, b, c, col, m, t, m2w) {
+Triangle::Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, b, c, col, m, t, bt, m2w) {
     _vertexNormals[0] = n1; _vertexNormals[1] = n2; _vertexNormals[2] = n3;
     _verticesHaveNormals = true;
 }
 
-Triangle::Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, b, c, col, m, t, m2w) {
+Triangle::Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, b, c, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
     _verticesHaveTexture = true;
 }
 
-Triangle::Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, n1, b, n2, c, n3, col, m, t, m2w) {
+Triangle::Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, n1, b, n2, c, n3, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
     _verticesHaveTexture = true;
 }

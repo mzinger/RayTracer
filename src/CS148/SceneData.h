@@ -195,12 +195,16 @@ public:
 class ParametricMaterial {
     ParametricColor *_RGB;
     Texture* _texture;
+    Texture* _bumpTexture;
+    PerlinNoise* _noise;
     ParametricValue *_coefficients[7];
     friend class SceneLoader;
 
 public:
     MaterialInfo getMaterial(int time) { return MaterialInfo(_RGB->getColor(time),
                                                              _texture,
+                                                             _bumpTexture,
+                                                             _noise,
                                                              _coefficients[0]->getValue(time),
                                                              _coefficients[1]->getValue(time),
                                                              _coefficients[2]->getValue(time),
@@ -208,7 +212,7 @@ public:
                                                              _coefficients[4]->getValue(time),
                                                              _coefficients[5]->getValue(time),
                                                              _coefficients[6]->getValue(time)); }
-    ParametricMaterial() : _RGB(NULL), _texture(NULL) {
+    ParametricMaterial() : _RGB(NULL), _texture(NULL), _bumpTexture(NULL), _noise(NULL) {
         for (int i = 0; i < 7; i++)
             _coefficients[i] = 0;
     }
@@ -216,6 +220,8 @@ public:
     ~ParametricMaterial() {
         delete _RGB;
         if (_texture != NULL) delete _texture;
+        if (_bumpTexture != NULL) delete _bumpTexture;
+        if (_noise != NULL) delete _noise;
         for (int i = 0; i < 7; i++)
             delete _coefficients[i];
     }

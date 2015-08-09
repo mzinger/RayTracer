@@ -516,6 +516,17 @@ bool SceneLoader::doMaterial(istream &str, string &name)
                     string texture_filename = getQuoted(str);
                     cout << "Reading texture from file : " << texture_filename << endl;
                     n->_texture = new Texture(texture_filename);
+                } else if (cmd == "PerlinBumpMap") {
+                    if (getValues(str, values) < 5) {
+                        *err << cmd << " with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 5);
+                        n->_noise = new PerlinNoise(values[0]->getValue(0), values[1]->getValue(0), values[2]->getValue(0), values[3]->getValue(0), values[4]->getValue(0));
+                    }
+                } else if (cmd == "TextureBumpMap") {
+                    string texture_filename = getQuoted(str);
+                    cout << "Reading texture bump map from file : " << texture_filename << endl;
+                    n->_bumpTexture = new Texture(texture_filename);
                 } else if (indices.find(cmd) != indices.end()) {
                     if (getValues(str, values) < 1) {
                         *err << cmd << " with no parameters at "; errLine(str.tellg());
