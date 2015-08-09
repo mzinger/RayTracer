@@ -60,6 +60,7 @@ class mat4;
 class Ray;
 class Sample;
 class RGB;
+class FloatRGB;
 
 enum {
     VX, VY, VZ, VW
@@ -511,6 +512,7 @@ public:
     RGB();
     RGB(const double r, const double g, const double b);
     RGB(const RGB& c);
+    RGB(const FloatRGB& c);
     RGB(const RGB& a, const RGB& b, const double t); //Linearly interpolated color
 
     // Assignment operators
@@ -593,6 +595,7 @@ class Material {
 protected:
 
     float _p[8]; //Storage for the 5 phong exponents
+    
 
 public:
 
@@ -1803,6 +1806,12 @@ inline RGB::RGB(const RGB& c) {
     _c[RED] = c._c[RED];
     _c[GREEN] = c._c[GREEN];
     _c[BLUE] = c._c[BLUE];
+}
+
+inline RGB::RGB(const FloatRGB& c) {
+    _c[RED] = c[RED];
+    _c[GREEN] = c[GREEN];
+    _c[BLUE] = c[BLUE];
 }
 
 inline RGB::RGB(const RGB& a, const RGB& b, const double t) {

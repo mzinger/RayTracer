@@ -4,6 +4,8 @@
 #include <fstream>
 
 void OBJTriangleMesh::clear() {
+    _verticesHaveTexture = false;
+    _verticesHaveNormal = false;
     for (vector<OBJTriangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
         delete *it;
     }
@@ -12,12 +14,20 @@ void OBJTriangleMesh::clear() {
     }
 }
 
-bool getFirstValue(stringstream &ss, int &value) {
+bool getFirstValue(stringstream &ss, VertexTextureNormal &value) {
     string s;
     if (ss >> s) {
-        stringstream valuestream(s);
-        if (valuestream >> value)
-            return true;
+        vector<string> returnVal;
+        stringstream temp(s);
+        string segment;
+        while(getline(temp, segment, '/')) {
+            returnVal.push_back(segment);
+        }
+        assert(returnVal.size() >= 1);
+        value.vertex = atoi(returnVal[0].c_str()) - 1;
+        if (returnVal.size() >= 2) value.texture = atoi(returnVal[1].c_str()) - 1;
+        if (returnVal.size() >= 3) value.normal = atoi(returnVal[2].c_str()) - 1;
+        return true;
     }
     return false;
 }
@@ -32,7 +42,6 @@ bool OBJTriangleMesh::loadFile(string file) {
     }
     string line;
     // TODO (ankitkr): Investigate why this variable is unused.
-    int normals = 0;
     while (getline(f,line)) {
         stringstream linestream(line);
         string op;
@@ -44,19 +53,30 @@ bool OBJTriangleMesh::loadFile(string file) {
             linestream >> v;
             vertices.push_back(new OBJVertex(v));
         }
+        if (op == "vn") {
+            vec3 n;
+            linestream >> n;
+            normals.push_back(new OBJNormal(n));
+        }
+        if (op == "vt") {
+            vec2 t;
+            linestream >> t;
+            textures.push_back(new OBJTexture(t));
+        }
         if (op == "f") { // extract a face as a triangle fan
-            int first, second, third;
+            VertexTextureNormal first, second, third;
             if (!getFirstValue(linestream, first))
                 continue;
+            if (first.normal != -1) _verticesHaveNormal = true;
+            if (first.texture != -1) _verticesHaveTexture = true;
             if (!getFirstValue(linestream, second))
                 continue;
             while (getFirstValue(linestream, third)) {
-                triangles.push_back(
-                                    new OBJTriangle(first-1, second-1, third-1)
-                                   );
+                triangles.push_back(new OBJTriangle(first, second, third));
                 second = third;
             }
         }
     }
+    cout << "Num triangles in mesh : " << triangles.size() << endl;
     return true;
 }

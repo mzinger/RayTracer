@@ -6,9 +6,11 @@
  */
 
 #include "Primitives.h"
+#include "CS148/Texture.h"
 
-Primitive::Primitive(RGB & c, Material & m, mat4 modelToWorld) {
+Primitive::Primitive(RGB & c, Material & m, Texture* texture, mat4 modelToWorld) {
     _c = c;
+    _texture = texture;
     _m = m;
     _modelToWorld = modelToWorld;
     _worldToModel = modelToWorld.inverse();
@@ -25,15 +27,16 @@ void Primitive::setMaterial(Material & m) {
     _m = m;
 }
 
-const RGB& Primitive::getColor() {
+RGB Primitive::getColor(vec3 position) {
     return _c;
 }
+
 const Material& Primitive::getMaterial() {
     return _m;
 }
 
 
-Sphere::Sphere(double radius, RGB & c, Material & m, mat4 m2w): Primitive(c,m,m2w) {
+Sphere::Sphere(double radius, RGB & c, Material & m, Texture* t, mat4 m2w): Primitive(c,m,t,m2w) {
     _r = radius;
     _center = vec4(0, 0, 0, 1);  // always at origin wrt a transformation.
     // Take bounding box of untransformed sphere, transform it and then return its bounding box
@@ -66,9 +69,10 @@ inline vec3 Sphere::calculateNormal(vec4 & position) {
     return normal.normalize();
 }
 
-Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w) : Primitive(col,m,m2w) {
+Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, mat4 m2w) : Primitive(col,m,t,m2w) {
     verts[0] = a; verts[1] = b; verts[2] = c;
     _verticesHaveNormals = false;
+    _verticesHaveTexture = false;
     _normal = (verts[2]- verts[0]) ^ (verts[1] - verts[0]);
     //_normal.normalize();
     // Take bounding box of untransformed triangle, transform it and then return its bounding box
@@ -81,6 +85,21 @@ Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w) : 
     Box box(vec3(min_x, min_y, min_z), vec3(max_x, max_y, max_z));
     box.transform(_modelToWorld);
     _boundingBox = box;
+}
+
+Triangle::Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, b, c, col, m, t, m2w) {
+    _vertexNormals[0] = n1; _vertexNormals[1] = n2; _vertexNormals[2] = n3;
+    _verticesHaveNormals = true;
+}
+
+Triangle::Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, b, c, col, m, t, m2w) {
+    _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
+    _verticesHaveTexture = true;
+}
+
+Triangle::Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w) : Triangle(a, n1, b, n2, c, n3, col, m, t, m2w) {
+    _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
+    _verticesHaveTexture = true;
 }
 
 double Triangle::intersect(Ray & ray) {
@@ -135,6 +154,35 @@ vec3 Triangle::calculateNormal(vec4 & position) {
     }
     normal = _worldToModel.transpose() * vec4(normal, 0);
     return vec3(normal, VW).normalize();
+}
+
+RGB Triangle::getColor(vec3 position) {
+    if (!_verticesHaveTexture) {
+        return _c;
+    }
+    // Use barycentric interpolation to compute texture color.
+    vec3 v0 = verts[1] - verts[0];
+    vec3 v1 = verts[2] - verts[0];
+    vec3 v2 = vec3(_worldToModel*position) - verts[0];
+    
+    // Compute dot products
+    double dot00 = v0 * v0;
+    double dot01 = v0 * v1;
+    double dot02 = v0 * v2;
+    double dot11 = v1 * v1;
+    double dot12 = v1 * v2;
+    
+    // Compute barycentric coordinates
+    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
+    double alpha = 1 - (beta + gamma);
+    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
+    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    vec2 textureCoord = alpha*_textureCoord[0] + beta*_textureCoord[1] + gamma*_textureCoord[2];
+    vec2 indices(textureCoord[0] * _texture->_width, textureCoord[1] * _texture->_height);
+    // Read in the texture image at this coordinate.
+    return _texture->_data[int(indices[1])*_texture->_width + int(indices[0])];
 }
 
 Box::Box (const vector<Primitive*>& primitives) {

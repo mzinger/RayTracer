@@ -11,6 +11,7 @@
 #define SCENE_INFO_H_
 
 #include "algebra3.h"
+#include "Texture.h"
 
 enum {
     MAT_MA,     //ambient
@@ -35,10 +36,11 @@ enum {
 struct MaterialInfo {
     double k[MAT_NUM_COEFFICIENTS]; //Storage for the material coefficients
     RGB color;
+    Texture* texture;
 
     MaterialInfo() {}
-    MaterialInfo(RGB color, const double ka, const double kd, const double ks, const double ksp, const double ksm, const double kt, const double ktn)
-        : color(color)
+    MaterialInfo(RGB color, Texture* texture, const double ka, const double kd, const double ks, const double ksp, const double ksm, const double kt, const double ktn)
+        : color(color), texture(texture)
     {
         k[MAT_MA] = ka;
         k[MAT_MD] = kd;
@@ -93,6 +95,5 @@ struct CameraInfo {
         sides[FRUS_FAR] = f;
     }
 };
-
 
 #endif /* SCENE_INFO_H_ */

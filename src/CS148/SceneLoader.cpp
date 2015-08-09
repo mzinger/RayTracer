@@ -512,6 +512,10 @@ bool SceneLoader::doMaterial(istream &str, string &name)
                         for (int ci = 0; ci < 3; ci++)
                             n->_RGB->_color[ci] = values[ci];
                     }
+                } else if (cmd == "texture") {
+                    string texture_filename = getQuoted(str);
+                    cout << "Reading texture from file : " << texture_filename << endl;
+                    n->_texture = new Texture(texture_filename);
                 } else if (indices.find(cmd) != indices.end()) {
                     if (getValues(str, values) < 1) {
                         *err << cmd << " with no parameters at "; errLine(str.tellg());

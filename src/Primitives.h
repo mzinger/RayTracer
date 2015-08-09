@@ -9,7 +9,8 @@
 #define PRIMITIVE_H_
 
 #include "global.h"
-
+//#include "CS148/Texture.h"
+struct Texture;
 class Primitive;
 
 // An axis aligned bounding box.
@@ -39,7 +40,7 @@ protected:
 
 class Primitive {
 protected:
-    Primitive(RGB & c, Material & m, mat4 modelToWorld); //Primitives are an abstract class
+    Primitive(RGB & c, Material & m, Texture* texture, mat4 modelToWorld); //Primitives are an abstract class
 public:
     virtual ~Primitive();
 
@@ -59,21 +60,21 @@ public:
 
     void setColor(RGB & c);
     void setMaterial(Material & m);
-    const RGB& getColor();
+    virtual RGB getColor(vec3 position);
     const Material& getMaterial();
 protected:
 	mat4 _modelToWorld;
 	mat4 _worldToModel;
     Box _boundingBox;
-
-private:
     RGB _c;
+    Texture* _texture;
+private:
     Material _m;
 };
 
 class Sphere : public Primitive {
 public:
-    Sphere(double radius, RGB & c, Material & m, mat4 modelToWorld);
+    Sphere(double radius, RGB & c, Material & m, Texture* t, mat4 modelToWorld);
 
     double intersect(Ray & ray);
     vec3 calculateNormal(vec4 & position);
@@ -88,17 +89,23 @@ private:
 class Triangle : public Primitive {
     friend class World;
 public:
-    Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, mat4 m2w);
+    Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, mat4 m2w);
+    Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w);
+    Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, mat4 m2w);
+    Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, mat4 m2w);
 
     double intersect(Ray &ray);
+    RGB getColor(vec3 position);
     vec3 calculateNormal(vec4 & position);
     Box boundingBox();
 
 private:
     vec3 verts[3];
     vec3 _vertexNormals[3];
+    vec2 _textureCoord[3];
     vec3 _normal;
     bool _verticesHaveNormals;
+    bool _verticesHaveTexture;
 };
 
 class BVHNode {

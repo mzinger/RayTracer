@@ -194,25 +194,28 @@ public:
 
 class ParametricMaterial {
     ParametricColor *_RGB;
+    Texture* _texture;
     ParametricValue *_coefficients[7];
     friend class SceneLoader;
 
 public:
     MaterialInfo getMaterial(int time) { return MaterialInfo(_RGB->getColor(time),
-                                                     _coefficients[0]->getValue(time),
-                                                     _coefficients[1]->getValue(time),
-                                                     _coefficients[2]->getValue(time),
-                                                     _coefficients[3]->getValue(time),
-                                                     _coefficients[4]->getValue(time),
-                                                     _coefficients[5]->getValue(time),
-                                                     _coefficients[6]->getValue(time)); }
-    ParametricMaterial() : _RGB(NULL) {
+                                                             _texture,
+                                                             _coefficients[0]->getValue(time),
+                                                             _coefficients[1]->getValue(time),
+                                                             _coefficients[2]->getValue(time),
+                                                             _coefficients[3]->getValue(time),
+                                                             _coefficients[4]->getValue(time),
+                                                             _coefficients[5]->getValue(time),
+                                                             _coefficients[6]->getValue(time)); }
+    ParametricMaterial() : _RGB(NULL), _texture(NULL) {
         for (int i = 0; i < 7; i++)
             _coefficients[i] = 0;
     }
 
     ~ParametricMaterial() {
         delete _RGB;
+        if (_texture != NULL) delete _texture;
         for (int i = 0; i < 7; i++)
             delete _coefficients[i];
     }

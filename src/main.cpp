@@ -100,7 +100,7 @@ RGB traceRay(Ray & ray, World* world, int depth) {
         vec3 n(intersecting->calculateNormal(point));
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
-            RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor() +
+            RGB Spec = (intersecting->getMaterial().getMSM()) * intersecting->getColor(p) +
             (1 - intersecting->getMaterial().getMSM()) * RGB(1, 1, 1);
             Light* light = *light_it;
             vec3 l_dir; light->getIncidenceVector(point, l_dir);
@@ -115,14 +115,14 @@ RGB traceRay(Ray & ray, World* world, int depth) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d = viewport->getViewVector(p);
                 vec3 r = 2 * (n * l_dir) * n - l_dir;
-                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor() * light->getColor(point) * MAX(l_dir*n, 0);
+                RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor(p) * light->getColor(point) * MAX(l_dir*n, 0);
                 RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
                 pow(MAX(0, r*d), intersecting->getMaterial().getMSP());
                 retColor += LambComp + SpecComp;
             }
             ++light_it;
         }
-        RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor() * world->getAmbientLightColor();
+        RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor(p) * world->getAmbientLightColor();
         retColor += AmbComp;
         
         retColor += combineReflectionRefraction(world, ray, *intersecting, p, n, depth);
@@ -220,7 +220,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
     MaterialInfo m;
     if (g->computeSphere(r, m, time)) {
         Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
-        Sphere *sph = new Sphere(r, m.color, mat, localToWorld);
+        Sphere *sph = new Sphere(r, m.color, mat, m.texture, localToWorld);
         world->addPrimitive(sph);
     }
 
@@ -230,7 +230,7 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
         Triangle *tri = new Triangle(vec3(vert.vertices[0], vert.vertices[1], 0),
                                      vec3(vert.vertices[2], vert.vertices[3], 0),
                                      vec3(vert.vertices[4], vert.vertices[5], 0),
-                                     m.color, mat, localToWorld);
+                                     m.color, mat, m.texture, localToWorld);
         world->addPrimitive(tri);
     }
     
@@ -240,11 +240,40 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
         int num = 0;
         for (vector<OBJTriangle*>::iterator it = t->triangles.begin(); it != t->triangles.end(); ++it) {
             ++num;
-            Triangle *tri = new Triangle(
-                                t->vertices[ (**it).ind[0] ]->pos,
-                                t->vertices[ (**it).ind[1] ]->pos,
-                                t->vertices[ (**it).ind[2] ]->pos,
-                                m.color, mat, localToWorld);
+            Triangle* tri;
+            if (t->verticesHaveTexture() && t->verticesHaveNormal()) {
+               tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
+                                  t->textures[ (*it)->texture_ind[0] ]->coords,
+                                  t->normals[ (*it)->normal_ind[0] ]->dir,
+                                  t->vertices[ (*it)->ind[1] ]->pos,
+                                  t->textures[ (*it)->texture_ind[1] ]->coords,
+                                  t->normals[ (*it)->normal_ind[1] ]->dir,
+                                  t->vertices[ (*it)->ind[2] ]->pos,
+                                  t->textures[ (*it)->texture_ind[2] ]->coords,
+                                  t->normals[ (*it)->normal_ind[2] ]->dir,
+                                  m.color, mat, m.texture, localToWorld);
+            } else if (t->verticesHaveNormal()) {
+                tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
+                                   t->normals[ (*it)->normal_ind[0] ]->dir,
+                                   t->vertices[ (*it)->ind[1] ]->pos,
+                                   t->normals[ (*it)->normal_ind[1] ]->dir,
+                                   t->vertices[ (*it)->ind[2] ]->pos,
+                                   t->normals[ (*it)->normal_ind[2] ]->dir,
+                                   m.color, mat, m.texture, localToWorld);
+            } else if (t->verticesHaveTexture()) {
+                tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
+                                   t->textures[ (*it)->texture_ind[0] ]->coords,
+                                   t->vertices[ (*it)->ind[1] ]->pos,
+                                   t->textures[ (*it)->texture_ind[1] ]->coords,
+                                   t->vertices[ (*it)->ind[2] ]->pos,
+                                   t->textures[ (*it)->texture_ind[2] ]->coords,
+                                   m.color, mat, m.texture, localToWorld);
+            } else {
+                tri = new Triangle(t->vertices[ (*it)->ind[0] ]->pos,
+                                   t->vertices[ (*it)->ind[1] ]->pos,
+                                   t->vertices[ (*it)->ind[2] ]->pos,
+                                   m.color, mat, m.texture, localToWorld);
+            }
             world->addPrimitive(tri);
         }
     }
