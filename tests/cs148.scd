@@ -1,14 +1,14 @@
 (Material cubemat
-    (texture "cs148-cube.png")
+    (texture "tests/cs148-cube.png")
     (ma .1) (ml .7) (ms 0) (msp 100) (msm 1) (mt 0) (mtn 1)
 )
 
 (Material spheremat
-     (texture "worldmap.png")
+     (texture "tests/worldmap.png")
      (ma .1) (ml .7) (ms 0) (msp 100) (msm 1) (mt 0) (mtn 1)
 )
 
-(Include mesh "tex-cube.obj" (material cubemat))
+(Include mesh "tests/tex-cube.obj" (material cubemat))
 (Sphere sph1 (radius 2) (material spheremat))
 
 (Light amb
