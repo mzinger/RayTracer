@@ -84,6 +84,25 @@ RGB combineReflectionRefraction(World* world, Ray& view_ray, Primitive& intersec
     return RGB(0,0,0);
 }
 
+double ComputeIlluminationRatio(Light* light, vec4& point, World* world) {
+    bool use_dist;
+    Ray light_ray = light->getShadowRay(point, use_dist);
+    if (PointLight* point_light = dynamic_cast<PointLight*>(light)) {
+        vector<pair<Ray, double>> shadow_rays = point_light->GetShadowRays(point, use_dist);
+        double illumination_ratio = 0.0;
+        for (auto& ray_tmax : shadow_rays) {
+            double t_s;
+            if (world->intersect(ray_tmax.first, t_s) == nullptr || t_s >= ray_tmax.second) {
+                illumination_ratio += 1;
+            }
+        }
+        return illumination_ratio / shadow_rays.size();
+    }
+    
+    double t_l;
+    return world->intersect(light_ray, t_l) == nullptr ? 0.0 : 1.0;
+}
+
 // Here you raycast a single ray, calculating the color of this ray.
 RGB traceRay(Ray & ray, World* world, int depth) {
     RGB retColor(0,0,0);
@@ -104,21 +123,16 @@ RGB traceRay(Ray & ray, World* world, int depth) {
             (1 - intersecting->getMaterial().getMSM()) * RGB(1, 1, 1);
             Light* light = *light_it;
             vec3 l_dir; light->getIncidenceVector(point, l_dir);
-            double t_l;
-            bool use_dist;
-            Ray light_ray = light->getShadowRay(point, use_dist);
-            double t_max = numeric_limits<float>::infinity();
-            if (PointLight* point_light = dynamic_cast<PointLight*>(light)) {
-                t_max = light_ray.computeT(vec3(point_light->getPos()));
-            }
-            if (world->intersect(light_ray, t_l) == nullptr || t_l >= t_max) {
+
+            double illumination_ratio = ComputeIlluminationRatio(light, point, world);
+            if (illumination_ratio > 0.0) {
                 // This point is not in shadow - lets compute the phong color
                 vec3 d = viewport->getViewVector(p);
                 vec3 r = 2 * (n * l_dir) * n - l_dir;
                 RGB LambComp = intersecting->getMaterial().getML() * intersecting->getColor(p) * light->getColor(point) * MAX(l_dir*n, 0);
                 RGB SpecComp = intersecting->getMaterial().getMS() * Spec * light->getColor(point) *
                 pow(MAX(0, r*d), intersecting->getMaterial().getMSP());
-                retColor += LambComp + SpecComp;
+                retColor += illumination_ratio * (LambComp + SpecComp);
             }
             ++light_it;
         }

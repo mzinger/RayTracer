@@ -21,12 +21,14 @@
 		4D2E94871B6B1840007C4240 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		4D2E94881B6B1840007C4240 /* teapot.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = teapot.obj; sourceTree = "<group>"; };
 		4D2E94891B6B1840007C4240 /* teapot.scd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = teapot.scd; sourceTree = "<group>"; };
+		4D78CD061B77284700978841 /* tests */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tests; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		4D2E94611B6B1699007C4240 = {
 			isa = PBXGroup;
 			children = (
+				4D78CD061B77284700978841 /* tests */,
 				4D2E947B1B6B1840007C4240 /* dunkit.scd */,
 				4D2E947C1B6B1840007C4240 /* FreeImage */,
 				4D2E947D1B6B1840007C4240 /* FreeImage.dll */,

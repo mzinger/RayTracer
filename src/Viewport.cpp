@@ -70,10 +70,6 @@ bool Viewport::getSample(Sample & s) {
     return true;
 }
 
-double epsilon() {
-    return -CAMERA_LENS_SIZE + (double)rand() / RAND_MAX * 2 * CAMERA_LENS_SIZE;
-}
-
 vector<Ray> Viewport::createViewingRays(Sample & s) {
     double u = 1.0 * s.x() / _pixelsWide;
     double u_tag = 1.0 - u;
@@ -100,9 +96,9 @@ vector<Ray> Viewport::createViewingRays(Sample & s) {
         vec3 focal_point = start + t*end;
         for (int i = 0; i < RAYS_PER_PIXEL_SAMPLE; i++) {
             vec3 tempStart(start);
-            start[VX] += epsilon();
-            start[VY] += epsilon();
-            start[VZ] += epsilon();
+            start[VX] += epsilon(CAMERA_LENS_SIZE);
+            start[VY] += epsilon(CAMERA_LENS_SIZE);
+            start[VZ] += epsilon(CAMERA_LENS_SIZE);
             vec3 tempEnd(-(focal_point - tempStart));
             Ray ray(tempStart, focal_point, 0.1);
             result.push_back(ray);

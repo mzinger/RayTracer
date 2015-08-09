@@ -77,10 +77,31 @@ void PointLight::getIncidenceVector(vec4 & position, vec3 & returnValue) {
 }
 
 Ray PointLight::getShadowRay(vec4 & position, bool & useDist) {
-    vec3 start(position);
-    vec3 end(_pos);
-    return Ray(start, end, 0.1);
+    vec3 start(position, VW);
+    vec3 end(_pos, VW);
+    return Ray(start, end, 0.01);
 }
+
+vector<pair<Ray, double>> PointLight::GetShadowRays(vec4 & position, bool & useDist) {
+    vector<pair<Ray, double>> result;
+    if (POINT_LIGHT_SOURCE_SIZE > 0) {
+        for (int i = 0; i < RAYS_PER_LIGHT_SOURCE; i++) {
+            vec3 start(position, VW);
+            vec3 end(_pos, VW);
+            end[VX] += epsilon(POINT_LIGHT_SOURCE_SIZE);
+            end[VY] += epsilon(POINT_LIGHT_SOURCE_SIZE);
+            end[VZ] += epsilon(POINT_LIGHT_SOURCE_SIZE);
+            Ray light_ray(start, end, 0.01);
+            double t_max = light_ray.computeT(end);
+            result.push_back(make_pair(light_ray, t_max));
+        }
+    } else {
+        Ray shadow_ray = getShadowRay(position, useDist);
+        result.push_back(make_pair(shadow_ray, shadow_ray.computeT(_pos)));
+    }
+    return result;
+}
+
 
 
 DirectionalLight::DirectionalLight(RGB illumination) : Light(illumination){

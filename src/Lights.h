@@ -56,6 +56,9 @@ public:
     vec4 getPos() {return _pos; }
     void getIncidenceVector(vec4 & position, vec3 & returnValue);
 	Ray getShadowRay(vec4 & position, bool & useDist);
+    
+    // To support soft-shading
+    vector<pair<Ray, double>> GetShadowRays(vec4 & position, bool & useDist);
 private:
     vec4 _pos;
 };

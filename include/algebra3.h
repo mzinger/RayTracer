@@ -2095,4 +2095,8 @@ inline mat4 perspective3D(const double d) {
             0.0, 1.0, 0.0), vec4(0.0, 0.0, 1.0 / d, 0.0));
 }
 
+inline double epsilon(double maxSize) {
+    return -maxSize/2 + (double)rand() / RAND_MAX * maxSize;
+}
+
 #endif // ALGEBRA3H
