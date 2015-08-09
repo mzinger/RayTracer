@@ -79,11 +79,11 @@ public:
     double intersect(Ray & ray);
     vec3 calculateNormal(vec4 & position);
     Box boundingBox();
+    RGB getColor(vec3 position);
 
 private:
     double _r;
     vec4 _center;
-
 };
 
 class Triangle : public Primitive {

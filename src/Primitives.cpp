@@ -45,6 +45,22 @@ Sphere::Sphere(double radius, RGB & c, Material & m, Texture* t, mat4 m2w): Prim
     _boundingBox = box;
 }
 
+RGB Sphere::getColor(vec3 position) {
+    if (_texture == NULL) {
+        return _c;
+    }
+    // Use polar coordinates to compute texture color.
+    vec3 point = _worldToModel*position;
+    float theta = acos(point[2]/_r);
+    float phi = atan2(point[1], point[0]);
+    assert(theta >= 0); assert(theta <= M_PI);
+    assert(phi >= -M_PI); assert(phi <= M_PI);
+    if (phi < 0) phi += 2*M_PI;
+    vec2 textureCoord(phi/(2*M_PI), (M_PI-theta)/M_PI);
+    vec2 indices(textureCoord[0] * _texture->_width, textureCoord[1] * _texture->_height);
+    // Read in the texture image at this coordinate.
+    return _texture->_data[int(indices[1])*_texture->_width + int(indices[0])];
+}
 
 //Checks for intersection with the given ray
 double Sphere::intersect(Ray & ray) {

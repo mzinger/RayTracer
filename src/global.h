@@ -29,11 +29,14 @@
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 #define RAYS_PER_PIXEL 1
+#define RAYS_PER_PIXEL_SAMPLE 3 // relevant if depth of field is on
+#define CAMERA_LENS_SIZE 0.05 // relevant if depth of field is on
 
 #define OPENGL_RENDER (1)
 #define USE_ACCELERATION_INDEX (1)
 #define USE_VERTEX_NORMALS (1)
-#define USE_REFRACTION (1)
+#define USE_REFRACTION (0)
 #define MAX_TIME (1)
+#define DEPTH_OF_FIELD (0)
 
 #endif /* GLOBAL_H_ */

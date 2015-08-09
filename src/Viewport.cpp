@@ -25,7 +25,7 @@ Viewport::Viewport(vec4 eye, vec4 LL, vec4 UL, vec4 LR, vec4 UR, int width, int 
     RGB color(0,0,0);
     Material m;
     
-    _focalPlane = new Triangle(a, b, c, color, m, localToWorld);
+    _focalPlane = new Triangle(a, b, c, color, m, NULL, localToWorld);
     
     _eye = eye;	//You should use this for the viewing ray
     _LL = LL;
