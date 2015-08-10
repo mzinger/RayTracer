@@ -4,6 +4,7 @@
 )
 
 (Material spheremat
+     (color 1 1 1)
      (texture "tests/worldmap.png")
      (ma .1) (ml .7) (ms 0) (msp 100) (msm 1) (mt 0) (mtn 1)
 )

@@ -18,3 +18,7 @@ Texture::Texture(string filename) {
         }
     }
 }
+
+FloatRGB Texture::getValue(double u, double v) {
+    return _data[int(_width*v + u)];
+}
