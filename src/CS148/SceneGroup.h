@@ -24,6 +24,9 @@ public:
     bool computeMesh(OBJTriangleMesh* &mesh, MaterialInfo &material, int time); /* get a mesh */
     bool computeSphere(double &radius, MaterialInfo &material, int time); /* get a sphere */
     bool computeTriangle(VertexInfo &vertices, MaterialInfo &material, int time); /* get a triangle */
+    bool computeCuboid(VertexInfo &vertices, MaterialInfo &material, int time); /* get a cuboid */
+    bool computeCylinder(double &radius, double& height, MaterialInfo &material, int time); /* get a cylinder */
+    bool computeCone(double& radius, double& height, MaterialInfo &material, int time); /* get a cone */
     bool computeLight(LightInfo &ld, int time = 0); /* get light parameters */
     bool computeCamera(CameraInfo &frustum, int time = 0); /* get camera frustum */
 
@@ -42,7 +45,10 @@ private:
     string _name;
     vector<SceneInstance *> _children;
     ParametricSphere * _sphere;
+    ParametricCuboid * _cuboid;
     ParametricTriangle * _triangle;
+    ParametricCylinder * _cylinder;
+    ParametricCone * _cone;
     ParametricLight *_light;
     ParametricCamera *_camera;
     OBJTriangleMesh *_mesh;

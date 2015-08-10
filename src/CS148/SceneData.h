@@ -244,6 +244,72 @@ public:
     }
 };
 
+class ParametricCylinder {
+    ParametricValue *_radius;
+    ParametricValue *_height;
+    ParametricMaterial *_material;
+    friend class SceneLoader;
+    
+public:
+    double getRadius(int time) { return _radius->getValue(time); }
+    double getHeight(int time) { return _height->getValue(time); }
+    MaterialInfo getMaterial(int time) { return _material->getMaterial(time); }
+    
+    ParametricCylinder() : _radius(NULL), _height(NULL), _material(NULL) {}
+    
+    ~ParametricCylinder() {
+        delete _radius;
+        delete _height;
+    }
+};
+
+class ParametricCone {
+    ParametricValue *_radius;
+    ParametricValue *_height;
+    ParametricMaterial *_material;
+    friend class SceneLoader;
+    
+public:
+    double getRadius(int time) { return _radius->getValue(time); }
+    double getHeight(int time) { return _height->getValue(time); }
+    MaterialInfo getMaterial(int time) { return _material->getMaterial(time); }
+    
+    ParametricCone() : _radius(NULL), _height(NULL), _material(NULL) {}
+    
+    ~ParametricCone() {
+        delete _radius;
+        delete _height;
+    }
+};
+
+class ParametricCuboid {
+    ParametricValue *_vertices[6];
+    ParametricMaterial *_material;
+    friend class SceneLoader;
+    
+public:
+    MaterialInfo getMaterial(int time) { return _material->getMaterial(time); }
+
+    VertexInfo getVertices(int time) { return VertexInfo(_vertices[0]->getValue(time),
+                                                         _vertices[1]->getValue(time),
+                                                         _vertices[2]->getValue(time),
+                                                         _vertices[3]->getValue(time),
+                                                         _vertices[4]->getValue(time),
+                                                         _vertices[5]->getValue(time)); }
+
+    ParametricCuboid() : _material(NULL) {
+        for (int i = 0; i < 6; i++) {
+            _vertices[i] = NULL;
+        }
+    }
+    
+    ~ParametricCuboid() {
+        for (int i = 0; i < 6; i++) {
+            delete _vertices[i];
+        }
+    }
+};
+
 class ParametricTriangle {
     ParametricValue *_vertices[6];
     ParametricMaterial *_material;

@@ -545,6 +545,7 @@ bool SceneLoader::doMaterial(istream &str, string &name)
 
 void SceneLoader::SetSphereDefaults(SceneGroup *n)
 {
+    cout << "! set sphere defaults" << endl;
     if (n->_sphere->_material == NULL)
     {
         n->_sphere->_material = new ParametricMaterial();
@@ -713,6 +714,220 @@ bool SceneLoader::doTriangle(istream &str, string &name)
                         *err << "Unknown material " << matName << " referenced at "; errLine(str.tellg());
                     } else {
                         n->_triangle->_material = materials[matName];
+                    }
+                } else {
+                    *err << "Error: command " << cmd << " not recognized at "; errLine(str.tellg());
+                }
+                findCloseParen(str);
+            }
+        }
+    } while (true);
+}
+
+void SceneLoader::SetCuboidDefaults(SceneGroup *n)
+{
+    // set default values for the vertices
+    if (n->_cuboid->_vertices[0] == NULL)
+        n->_cuboid->_vertices[0] = new ConstValue(0);
+    if (n->_cuboid->_vertices[1] == NULL)
+        n->_cuboid->_vertices[1] = new ConstValue(0);
+    if (n->_cuboid->_vertices[2] == NULL)
+        n->_cuboid->_vertices[2] = new ConstValue(0);
+    if (n->_cuboid->_vertices[3] == NULL)
+        n->_cuboid->_vertices[3] = new ConstValue(0);
+    if (n->_cuboid->_vertices[4] == NULL)
+        n->_cuboid->_vertices[4] = new ConstValue(0);
+    if (n->_cuboid->_vertices[5] == NULL)
+        n->_cuboid->_vertices[5] = new ConstValue(0);
+    if (n->_cuboid->_material == NULL)
+    {
+        n->_cuboid->_material = new ParametricMaterial();
+        SetMaterialDefaults(n->_cuboid->_material);
+    }
+}
+
+bool SceneLoader::doCuboid(istream &str, string &name)
+{
+    if (!getName(str, "cuboid", name))
+        return false;
+    
+    SceneGroup *n = new SceneGroup();
+    groups[name] = n;
+    n->_name = name;
+    
+    n->_cuboid = new ParametricCuboid();
+    do {
+        int state = findOpenOrClosedParen(str);
+        if (state == ERROR) {
+            SetCuboidDefaults(n);
+            return false;
+        } else if (state == CLOSED) {
+            SetCuboidDefaults(n);
+            return true;
+        } else if (state == OPEN)
+        {
+            string cmd;
+            vector<ParametricValue*> values;
+            if (readCommand(str, cmd)) {
+                if (cmd == "vertices") {
+                    if (getValues(str, values) < 6) {
+                        *err << "vertices with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 6);
+                        n->_cuboid->_vertices[0] = values[0];
+                        n->_cuboid->_vertices[1] = values[1];
+                        n->_cuboid->_vertices[2] = values[2];
+                        n->_cuboid->_vertices[3] = values[3];
+                        n->_cuboid->_vertices[4] = values[4];
+                        n->_cuboid->_vertices[5] = values[5];
+                    }
+                } else if (cmd == "material") {
+                    string matName = getString(str);
+                    if (matName.empty()) {
+                        *err << "No material name after material command at "; errLine(str.tellg());
+                    } else if (materials[matName] == NULL) {
+                        *err << "Unknown material " << matName << " referenced at "; errLine(str.tellg());
+                    } else {
+                        n->_cuboid->_material = materials[matName];
+                    }
+                } else {
+                    *err << "Error: command " << cmd << " not recognized at "; errLine(str.tellg());
+                }
+                findCloseParen(str);
+            }
+        }
+    } while (true);
+}
+
+void SceneLoader::SetCylinderDefaults(SceneGroup *n)
+{
+    // set default values
+    if (n->_cylinder->_radius == NULL)
+        n->_cylinder->_radius = new ConstValue(1);
+    if (n->_cylinder->_height == NULL)
+        n->_cylinder->_height = new ConstValue(1);
+    if (n->_cylinder->_material == NULL)
+    {
+        n->_cylinder->_material = new ParametricMaterial();
+        SetMaterialDefaults(n->_cylinder->_material);
+    }
+}
+
+bool SceneLoader::doCylinder(istream &str, string &name)
+{
+    if (!getName(str, "cylinder", name))
+        return false;
+    
+    SceneGroup *n = new SceneGroup();
+    groups[name] = n;
+    n->_name = name;
+    
+    n->_cylinder = new ParametricCylinder();
+    do {
+        int state = findOpenOrClosedParen(str);
+        if (state == ERROR) {
+            SetCylinderDefaults(n);
+            return false;
+        } else if (state == CLOSED) {
+            SetCylinderDefaults(n);
+            return true;
+        } else if (state == OPEN)
+        {
+            string cmd;
+            vector<ParametricValue*> values;
+            if (readCommand(str, cmd)) {
+                if (cmd == "radius") {
+                    if (getValues(str, values) < 1) {
+                        *err << "radius with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 1);
+                        n->_cylinder->_radius = values[0];
+                    }
+                } else if (cmd == "height") {
+                    if (getValues(str, values) < 1) {
+                        *err << "height with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 1);
+                        n->_cylinder->_height = values[0];
+                    }
+                } else if (cmd == "material") {
+                    string matName = getString(str);
+                    if (matName.empty()) {
+                        *err << "No material name after material command at "; errLine(str.tellg());
+                    } else if (materials[matName] == NULL) {
+                        *err << "Unknown material " << matName << " referenced at "; errLine(str.tellg());
+                    } else {
+                        n->_cylinder->_material = materials[matName];
+                    }
+                } else {
+                    *err << "Error: command " << cmd << " not recognized at "; errLine(str.tellg());
+                }
+                findCloseParen(str);
+            }
+        }
+    } while (true);
+}
+
+void SceneLoader::SetConeDefaults(SceneGroup *n)
+{
+    // set default values
+    if (n->_cone->_radius == NULL)
+        n->_cone->_radius = new ConstValue(1);
+    if (n->_cone->_height == NULL)
+        n->_cone->_height = new ConstValue(1);
+    if (n->_cone->_material == NULL)
+    {
+        n->_cone->_material = new ParametricMaterial();
+        SetMaterialDefaults(n->_cone->_material);
+    }
+
+}
+
+bool SceneLoader::doCone(istream &str, string &name)
+{
+    if (!getName(str, "cone", name))
+        return false;
+    
+    SceneGroup *n = new SceneGroup();
+    groups[name] = n;
+    n->_name = name;
+    
+    n->_cone = new ParametricCone();
+    do {
+        int state = findOpenOrClosedParen(str);
+        if (state == ERROR) {
+            SetConeDefaults(n);
+            return false;
+        } else if (state == CLOSED) {
+            SetConeDefaults(n);
+            return true;
+        } else if (state == OPEN)
+        {
+            string cmd;
+            vector<ParametricValue*> values;
+            if (readCommand(str, cmd)) {
+                if (cmd == "radius") {
+                    if (getValues(str, values) < 1) {
+                        *err << "radius with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 1);
+                        n->_cone->_radius = values[0];
+                    }
+                } else if (cmd == "height") {
+                    if (getValues(str, values) < 1) {
+                        *err << "height with insufficient parameters at "; errLine(str.tellg());
+                    } else {
+                        cleanAfter(values, 1);
+                        n->_cone->_height = values[0];
+                    }
+                } else if (cmd == "material") {
+                    string matName = getString(str);
+                    if (matName.empty()) {
+                        *err << "No material name after material command at "; errLine(str.tellg());
+                    } else if (materials[matName] == NULL) {
+                        *err << "Unknown material " << matName << " referenced at "; errLine(str.tellg());
+                    } else {
+                        n->_cone->_material = materials[matName];
                     }
                 } else {
                     *err << "Error: command " << cmd << " not recognized at "; errLine(str.tellg());
@@ -1006,6 +1221,42 @@ bool SceneLoader::buildScene(string filename)
                 else
                 {
                     *err << "mangled triangle command at "; errLine(file.tellg());
+                }
+            }
+            else if (line == "Cuboid")
+            {
+                string gname;
+                if (doCuboid(file, gname))
+                {
+                    cout << "read Cuboid " << gname << endl;
+                }
+                else
+                {
+                    *err << "mangled cuboid command at "; errLine(file.tellg());
+                }
+            }
+            else if (line == "Cylinder")
+            {
+                string gname;
+                if (doCylinder(file, gname))
+                {
+                    cout << "read Cylinder " << gname << endl;
+                }
+                else
+                {
+                    *err << "mangled cylinder command at "; errLine(file.tellg());
+                }
+            }
+            else if (line == "Cone")
+            {
+                string gname;
+                if (doCone(file, gname))
+                {
+                    cout << "read Cone " << gname << endl;
+                }
+                else
+                {
+                    *err << "mangled cone command at "; errLine(file.tellg());
                 }
             }
             else if (line == "Material")

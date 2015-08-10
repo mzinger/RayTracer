@@ -11,6 +11,7 @@
 #include "global.h"
 #include "Lights.h"
 #include "Primitives.h"
+#include "BHVTree.h"
 
 /**
  * The World forms a container for lights and primitives

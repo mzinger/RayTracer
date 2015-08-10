@@ -117,6 +117,7 @@ RGB traceRay(Ray & ray, World* world, int depth) {
     if (intersecting != nullptr) {
         vec4 point = ray.getPos(t);
         vec3 p(point);
+        return intersecting->getColor(p);
         vec3 n(intersecting->calculateNormal(point));
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
@@ -232,12 +233,24 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
         }
     }
 
-    double r;
+    double r, h;
     MaterialInfo m;
     if (g->computeSphere(r, m, time)) {
         Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
         Sphere *sph = new Sphere(r, m.color, mat, m.texture, m.bumpTexture, m.noise, localToWorld);
         world->addPrimitive(sph);
+    }
+
+    if (g->computeCylinder(r, h, m, time)) {
+        Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
+        Cylinder *cy = new Cylinder(h, r, m.color, mat, localToWorld);
+        world->addPrimitive(cy);
+    }
+
+    if (g->computeCone(r, h, m, time)) {
+        Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
+        Cone *cone = new Cone(h, r, m.color, mat, localToWorld);
+        world->addPrimitive(cone);
     }
 
     VertexInfo vert;
@@ -248,6 +261,12 @@ void sceneToWorld(SceneInstance *inst, World* world, mat4 localToWorld, int time
                                      vec3(vert.vertices[4], vert.vertices[5], 0),
                                      m.color, mat, m.texture, m.bumpTexture, localToWorld);
         world->addPrimitive(tri);
+    }
+
+    if (g->computeCuboid(vert, m, time)) {
+        Material mat(m.k[0],m.k[1],m.k[2],m.k[3],m.k[4],m.k[MAT_MS],m.k[5],m.k[6]);
+        Cuboid *cuboid = new Cuboid(vec3(vert.vertices[0], vert.vertices[1], vert.vertices[2]), vec3(vert.vertices[3], vert.vertices[4], vert.vertices[5]), m.color, mat, localToWorld);
+        world->addPrimitive(cuboid);
     }
     
     OBJTriangleMesh *t;
