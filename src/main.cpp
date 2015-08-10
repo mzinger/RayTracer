@@ -101,7 +101,7 @@ double ComputeIlluminationRatio(Light* light, vec4& point, World* world) {
     }
     
     double t_l;
-    return world->intersect(light_ray, t_l) == nullptr ? 0.0 : 1.0;
+    return world->intersect(light_ray, t_l) == nullptr || t_l >= numeric_limits<float>::infinity() ? 1.0 : 0.0;
 }
 
 // Here you raycast a single ray, calculating the color of this ray.
