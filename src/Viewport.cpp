@@ -96,11 +96,9 @@ vector<Ray> Viewport::createViewingRays(Sample & s) {
         vec3 focal_point = start + t*end;
         for (int i = 0; i < RAYS_PER_PIXEL_SAMPLE; i++) {
             vec3 tempStart(start);
-            start[VX] += epsilon();
-            start[VY] += epsilon();
-            start[VZ] += epsilon();
-            // TODO(mzinger:) Why is this variable unused ?
-            // vec3 tempEnd(-(focal_point - tempStart));
+            tempStart[VX] += epsilon(CAMERA_LENS_SIZE);
+            tempStart[VY] += epsilon(CAMERA_LENS_SIZE);
+            tempStart[VZ] += epsilon(CAMERA_LENS_SIZE);
             Ray ray(tempStart, focal_point, 0.1);
             result.push_back(ray);
         }

@@ -36,7 +36,7 @@
 #define OPENGL_RENDER (1)
 #define USE_ACCELERATION_INDEX (1)
 #define USE_VERTEX_NORMALS (1)
-#define USE_REFRACTION (0)
+#define USE_REFRACTION (1)
 #define MAX_TIME (1)
 #define DEPTH_OF_FIELD (0)
 #define POINT_LIGHT_SOURCE_SIZE 0.5 // Soft-shadows; set to 0 to disable
