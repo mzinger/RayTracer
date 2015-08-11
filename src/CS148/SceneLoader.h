@@ -14,6 +14,11 @@
 
 using namespace std;
 
+struct OBJMeshInfo {
+    string groupName;
+    string matName;
+};
+
 class SceneLoader { // this is basically like an elaborate constructor for Scene
 
 public:
@@ -79,6 +84,10 @@ private:
     bool doCone(istream &str, string &name); // process a Cone command
     bool doMaterial(istream &str, string &name); // process a Material command
 
+    bool doMtllib(istream &str);
+    void getOBJMeshes(string& file, vector<OBJMeshInfo>& meshes);
+    bool doMatMesh(istream &str);
+    
     /* the main loading function */
     bool buildScene(string filename); 
 };

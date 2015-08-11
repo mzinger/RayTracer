@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -605,6 +606,133 @@ bool SceneLoader::doInclude(istream &str, string& name)
     } while (true);
 }
 
+void SceneLoader::getOBJMeshes(string& file, vector<OBJMeshInfo>& meshes) {
+    ifstream f(file.c_str());
+    if (!f) {
+        std::cerr << "MatMesh: Couldn't load file " << file << std::endl;
+        return;
+    }
+    string line, groupName, matName;
+    while (getline(f,line)) {
+        stringstream linestream(line);
+        string op;
+        linestream >> op;
+        if (op == "g") {
+            string name;
+            linestream >> groupName;
+            string line2;
+            getline(f,line2);
+            stringstream linestream2(line2);
+            linestream2 >> op;
+            if (op == "usemtl") {
+                string name;
+                linestream2 >> matName;
+            }
+            OBJMeshInfo newMesh;
+            newMesh.groupName = groupName;
+            newMesh.matName = matName;
+            meshes.push_back(newMesh);
+            cout << "Found new group in MatMesh : " << groupName << "@" << matName << endl;
+        }
+    }
+}
+
+bool SceneLoader::doMatMesh(istream &str)
+{
+    string file = getQuoted(str);
+    vector<OBJMeshInfo> meshes;
+    getOBJMeshes(file, meshes);
+    
+    for (OBJMeshInfo mesh : meshes) {
+        SceneGroup *n = new SceneGroup();
+        groups[mesh.groupName] = n;
+        n->_name = mesh.groupName;
+        n->_mesh = new OBJTriangleMesh(file, mesh.groupName);
+        n->_meshMaterial = materials[mesh.matName];
+    }
+    return true;
+}
+
+bool SceneLoader::doMtllib(istream &str) {
+    string file = getQuoted(str);
+    ifstream f(file.c_str());
+    if (!f) {
+        std::cerr << "Mtllib: Couldn't load file " << file << std::endl;
+        return false;
+    }
+    string line;
+    ParametricMaterial *curr = NULL;
+    while (getline(f,line)) {
+        stringstream linestream(line);
+        string op, name;
+        linestream >> op;
+        if (op == "newmtl") {
+            linestream >> name;
+            curr = new ParametricMaterial();
+            materials[name] = curr;
+        } else if (op == "d") {
+            // unsupported
+            continue;
+        } else if (op == "Ns") {
+            double a;
+            linestream >> a;
+            if (curr != NULL) {
+                ParametricValue* val = new ConstValue(a);
+                curr->_coefficients[MAT_MSP] = val;
+            } else {
+                cout << "Mtllib : Attempting to set property of undefined material" << endl;
+            }
+        } else if (op == "Ni") {
+            //unsupported
+            continue;
+        } else if (op == "Ka") {
+            vec3 amb;
+            linestream >> amb;
+            if (curr != NULL) {
+                ParametricValue* val = new ConstValue(amb[0]);
+                curr->_coefficients[MAT_MA] = val;
+            } else {
+                cout << "Mtllib : Attempting to set property of undefined material" << endl;
+            }
+        } else if (op == "Kd") {
+            vec3 lamb;
+            linestream >> lamb;
+            if (curr != NULL) {
+                curr->_RGB = new ParametricColor();
+                for (int i = 0; i < 3; ++i) {
+                    ParametricValue* val = new ConstValue(lamb[i]);
+                    curr->_RGB->_color[i] = val;
+                }
+                ParametricValue* val = new ConstValue(0.6);
+                curr->_coefficients[MAT_MD] = val;
+            } else {
+                cout << "Mtllib : Attempting to set property of undefined material" << endl;
+            }
+        } else if (op == "Ks") {
+            vec3 spec;
+            linestream >> spec;
+            if (curr != NULL) {
+                ParametricValue* val = new ConstValue(spec[0]);
+                curr->_coefficients[MAT_MS] = val;
+            } else {
+                cout << "Mtllib : Attempting to set property of undefined material" << endl;
+            }
+        } else if (op == "Km") {
+            // unsuported
+            continue;
+        } else if (op == "map_Kd") {
+            string texture_filename;
+            linestream >> texture_filename;
+            cout << "Mtllib : Loading texture from file : " << texture_filename << endl;
+            curr->_texture = new Texture(texture_filename);
+        } else if (op == "map_Bump") {
+            // not supported
+            continue;
+        }
+    }
+    return true;
+}
+
 bool SceneLoader::doSphere(istream &str, string &name)
 {
     if (!getName(str, "sphere", name))
@@ -1198,8 +1326,29 @@ bool SceneLoader::buildScene(string filename)
                     curPos(cout, file.tellg());
                     cout << endl;
                 }
-            }
-            else if (line == "Sphere")
+            } else if (line == "MatMesh") {
+                if (doMatMesh(file))
+                {
+                    cout << "included MatMesh" << endl;
+                }
+                else
+                {
+                    cout << "mangled include MatMesh at ";
+                    curPos(cout, file.tellg());
+                    cout << endl;
+                }
+            } else if (line == "Mtllib") {
+                if (doMtllib(file))
+                {
+                    cout << "included mtllib " << endl;
+                }
+                else
+                {
+                    cout << "mangled include mtllib at ";
+                    curPos(cout, file.tellg());
+                    cout << endl;
+                }
+            } else if (line == "Sphere")
             {
                 string gname;
                 if (doSphere(file, gname))

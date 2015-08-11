@@ -117,7 +117,7 @@ RGB traceRay(Ray & ray, World* world, int depth) {
     if (intersecting != nullptr) {
         vec4 point = ray.getPos(t);
         vec3 p(point);
-        return intersecting->getColor(p);
+        //return intersecting->getColor(p);
         vec3 n(intersecting->calculateNormal(point));
         vector<Light*>::const_iterator light_it = world->getLightsBeginIterator();
         while(light_it != world->getLightsEndIterator()) {
@@ -163,7 +163,7 @@ void renderWithRaycasting() {
             // For every ray - choose a random world (for motion blur)
             int rand_num = rand()%MAX_TIME;
             World* world = worlds[rand_num];
-            c += traceRay(ray, world, 5);
+            c += traceRay(ray, world, MAX_BOUNCES);
             ++rayNum;
             film->expose(c, sample);
         }

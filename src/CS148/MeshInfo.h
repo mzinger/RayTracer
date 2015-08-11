@@ -61,6 +61,9 @@ struct OBJTriangleMesh {
     OBJTriangleMesh(string file) : _verticesHaveNormal(false), _verticesHaveTexture(false) {
         loadFile(file);
     }
+    OBJTriangleMesh(string file, string groupName) : _verticesHaveNormal(false), _verticesHaveTexture(false) {
+        loadGroupFromFile(file, groupName);
+    }
     ~OBJTriangleMesh() { 
         clear(); 
     }
@@ -68,6 +71,7 @@ struct OBJTriangleMesh {
     bool verticesHaveNormal() { return _verticesHaveNormal;}
     bool verticesHaveTexture() { return _verticesHaveTexture;}
     bool loadFile(string file);
+    bool loadGroupFromFile(string file, string groupName);
     void clear();
 private:
     bool _verticesHaveNormal;

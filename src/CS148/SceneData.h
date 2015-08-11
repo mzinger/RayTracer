@@ -201,20 +201,22 @@ class ParametricMaterial {
     friend class SceneLoader;
 
 public:
-    MaterialInfo getMaterial(int time) { return MaterialInfo(_RGB->getColor(time),
-                                                             _texture,
-                                                             _bumpTexture,
-                                                             _noise,
-                                                             _coefficients[0]->getValue(time),
-                                                             _coefficients[1]->getValue(time),
-                                                             _coefficients[2]->getValue(time),
-                                                             _coefficients[3]->getValue(time),
-                                                             _coefficients[4]->getValue(time),
-                                                             _coefficients[5]->getValue(time),
-                                                             _coefficients[6]->getValue(time)); }
+    MaterialInfo getMaterial(int time) {
+        return MaterialInfo(_RGB->getColor(time),
+                            _texture,
+                            _bumpTexture,
+                            _noise,
+                            _coefficients[0]->getValue(time),
+                            _coefficients[1]->getValue(time),
+                            _coefficients[2]->getValue(time),
+                            _coefficients[3]->getValue(time),
+                            _coefficients[4]->getValue(time),
+                            _coefficients[5]->getValue(time),
+                            _coefficients[6]->getValue(time));
+    }
     ParametricMaterial() : _RGB(NULL), _texture(NULL), _bumpTexture(NULL), _noise(NULL) {
         for (int i = 0; i < 7; i++)
-            _coefficients[i] = 0;
+            _coefficients[i] = new ConstValue(0);
     }
 
     ~ParametricMaterial() {

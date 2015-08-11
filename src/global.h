@@ -26,14 +26,15 @@
 
 #include <GL/freeglut.h>
 
-#define IMAGE_WIDTH 512
-#define IMAGE_HEIGHT 512
+#define IMAGE_WIDTH 1024
+#define IMAGE_HEIGHT 800
 #define RAYS_PER_PIXEL 1
 #define RAYS_PER_PIXEL_SAMPLE 3 // relevant if depth of field is on
 #define CAMERA_LENS_SIZE 0.1 // relevant if depth of field is on
 #define RAYS_PER_LIGHT_SOURCE 3 // relevant if soft-shadows are enabled
 
 #define OPENGL_RENDER (1)
+#define MAX_BOUNCES (3)
 #define USE_ACCELERATION_INDEX (1)
 #define USE_VERTEX_NORMALS (1)
 #define USE_REFRACTION (0)

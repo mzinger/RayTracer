@@ -125,7 +125,7 @@ inline vec3 Sphere::calculateNormal(vec4 & position) {
  *											   		   *
  ****************************************************************/
 
-Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Primitive(col,m,t,bt,m2w) {
+Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) :Primitive(col,m,t,bt,m2w) {
     verts[0] = a; verts[1] = b; verts[2] = c;
     _verticesHaveNormals = false;
     _verticesHaveTexture = false;
@@ -150,12 +150,13 @@ Triangle::Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col,
 
 Triangle::Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, b, c, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
-    _verticesHaveTexture = true;
+    _verticesHaveTexture = (t != NULL);
 }
 
 Triangle::Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, n1, b, n2, c, n3, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
-    _verticesHaveTexture = true;
+    _verticesHaveTexture = (t != NULL);
+    _verticesHaveNormals = true;
 }
 
 double Triangle::intersect(Ray & ray) {
@@ -202,8 +203,12 @@ vec3 Triangle::calculateNormal(vec4 & position) {
     double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
     double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
     double alpha = 1 - (beta + gamma);
-    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
-    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    //assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
+    //assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    if (alpha < 0 || beta < 0 || gamma < 0 || alpha > 1 || beta > 1 || gamma > 1) {
+        vec3 normal = _worldToModel.transpose() * vec4(_normal, 0);
+        return vec3(normal, VW).normalize();
+    }
     vec3 normal = _normal;
     if (alpha >= 0 && alpha <= 1 && beta >=0 && beta <=1 && gamma >=0 && gamma <=1) {
         normal = alpha * _vertexNormals[0] + beta * _vertexNormals[1] + gamma * _vertexNormals[2];
@@ -220,22 +225,22 @@ RGB Triangle::getColor(vec3 position) {
     vec3 v0 = verts[1] - verts[0];
     vec3 v1 = verts[2] - verts[0];
     vec3 v2 = vec3(_worldToModel*position) - verts[0];
-    
     // Compute dot products
     double dot00 = v0 * v0;
     double dot01 = v0 * v1;
     double dot02 = v0 * v2;
     double dot11 = v1 * v1;
     double dot12 = v1 * v2;
-    
     // Compute barycentric coordinates
     double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
     double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
     double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
     double alpha = 1 - (beta + gamma);
-    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
-    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    if (alpha < 0 || beta < 0 || gamma < 0 || alpha > 1 || beta > 1 || gamma > 1) {
+        return RGB(0, 0, 0);
+    }
     vec2 textureCoord = alpha*_textureCoord[0] + beta*_textureCoord[1] + gamma*_textureCoord[2];
+    assert(_texture != NULL);
     vec2 indices(textureCoord[0] * _texture->_width, textureCoord[1] * _texture->_height);
     // Read in the texture image at this coordinate.
     return _texture->_data[int(indices[1])*_texture->_width + int(indices[0])];

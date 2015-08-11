@@ -57,7 +57,6 @@ bool SceneGroup::computeMesh(OBJTriangleMesh* &mesh, MaterialInfo &material, int
 
     mesh = _mesh;
     material = _meshMaterial->getMaterial(time);
-
     return true;
 }
 
