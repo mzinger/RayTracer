@@ -99,6 +99,7 @@ vector<Ray> Viewport::createViewingRays(Sample & s) {
             tempStart[VX] += epsilon(CAMERA_LENS_SIZE);
             tempStart[VY] += epsilon(CAMERA_LENS_SIZE);
             tempStart[VZ] += epsilon(CAMERA_LENS_SIZE);
+            vec3 tempEnd(-(focal_point - tempStart));
             Ray ray(tempStart, focal_point, 0.1);
             result.push_back(ray);
         }

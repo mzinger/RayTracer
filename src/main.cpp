@@ -25,13 +25,13 @@ bool refract(const vec3& d, const vec3& n, double refractive_index, vec3& t) {
     double cn = refractive_index;
     vec3 normal = n;
     if (cosa < 0) {
-        cosa = -d * -n;
+        cosa *= -1;
         normal *= -1;
-        cn = 1 / cn;
+        //cn = 1 / cn; // Handled in calling function.
     }
     float disc = 1 - (1 - cosa * cosa) / (cn * cn);
     if (disc < 0) return false;
-    t = d / cn - normal * cosa / cn - normal * sqrt(disc);
+    t = d / cn + normal * cosa / cn - normal * sqrt(disc);
     return true;
 }
 
@@ -56,8 +56,6 @@ bool refractionColor(World* world, vec3& direction, double refraction_ratio, vec
             Ray refracting_ray(start, end, 0.1);
             refraction_color = traceRay(refracting_ray, world, depth  - 1);
             return true;
-        } else {
-            cout << "TIR" << endl;
         }
     }
     return false;
@@ -71,6 +69,7 @@ RGB combineReflectionRefraction(World* world, Ray& view_ray, Primitive& intersec
         vec3 reflection_normal = normal;
         if (-direction * normal < 0) {
             reflection_normal *= -1;
+            refraction_ratio = 1 / refraction_ratio;
         }
         
         RGB color = reflectionColor(world, view_ray, point, reflection_normal, depth);
@@ -80,11 +79,11 @@ RGB combineReflectionRefraction(World* world, Ray& view_ray, Primitive& intersec
             RGB refractColor;
             if (refractionColor(world, direction, refraction_ratio, point, normal, depth, refractDirection, refractColor)) {
                 refractDirection.normalize();
-        
+                
                 double c = (direction * normal < 0) ? -direction * normal : refractDirection * normal;
                 double r0 = pow((refraction_ratio - 1) / (refraction_ratio + 1), 2);
                 double r = r0 + (1-r0)*pow(1-c, 5);
-                
+
                 color = r * color + (1-r) * refractColor;
             }
         }
@@ -150,7 +149,7 @@ RGB traceRay(Ray & ray, World* world, int depth) {
             double k = intersecting->getMaterial().getMT();
             vec3 direction = vec3(ray.direction(), VW);
             direction.normalize();
-            if (direction * n < 0) {
+            if (-direction * n < 0) {
                 k = 1.0;
             }
             retColor *= (1 - k);
@@ -158,6 +157,7 @@ RGB traceRay(Ray & ray, World* world, int depth) {
         }
         RGB AmbComp = intersecting->getMaterial().getMA() * intersecting->getColor(p) * world->getAmbientLightColor();
         retColor += AmbComp;
+
     }
     retColor.clip(1);
     return retColor;
@@ -179,7 +179,7 @@ void renderWithRaycasting() {
             // For every ray - choose a random world (for motion blur)
             int rand_num = rand()%MAX_TIME;
             World* world = worlds[rand_num];
-            c += traceRay(ray, world, 3);
+            c += traceRay(ray, world, MAX_BOUNCES);
             ++rayNum;
             film->expose(c, sample);
         }

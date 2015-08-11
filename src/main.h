@@ -14,7 +14,7 @@
 #include "World.h"
 #include "Film.h"
 #include "Lights.h"
-//#include <GLUT/glut.h> /* Header File For The GLut Library*/
+#include <GLUT/glut.h> /* Header File For The GLut Library*/
 
 RGB traceRay(Ray & ray, World* world, int depth);
 

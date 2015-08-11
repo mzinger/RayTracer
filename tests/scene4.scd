@@ -12,7 +12,7 @@
 	(ma 0.5 ) (ml 0.6 ) (ms 0.1 ) (msp 40 ) (msm 1 ) (mt 0 ) (mtn 1 ))
 (Material matGlass
 	(color 0.75 0.75 0.75 )
-	(ma 0.0 ) (ml 0.2 ) (ms 0.9 ) (msp 40 ) (msm 1 ) (mt 1 ) (mtn 1.4))
+	(ma 0.0 ) (ml 0.2 ) (ms 0.9 ) (msp 40 ) (msm 1 ) (mt 1 ) (mtn 1))
 (Light amb (type 0 ) (color 0.2 0.2 0.2 ) )
 (Light pt1 (type 2 ) (color 20.8 20.8 20.8 )  (falloff 1 )  (deaddistance 0.1 ) )
 (Camera cam
@@ -44,7 +44,7 @@
 	(I amb1 amb )
 	(I pt1_I pt1 (T 2 2 -45 ) )
 	(I s_0 sp_0 (T 0.0 6.0 -100 ) )
-	(I spGlass_I spGlass (T 0 0 -42 ) )
+	(I spGlass_I spGlass (T 0 0 -22 ) )
 	(I spB_I spWALL (T 0 -100009.0 -3 ) )
 	(I spT_I spTOP (T 0 100009.0 -3 ) )
 	(I spF_I spWALL (T 0 0 -100100.0 ) )
