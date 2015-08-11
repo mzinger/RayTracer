@@ -81,7 +81,7 @@ double Sphere::intersect(Ray & ray) {
 
     // Check intersection of transformed ray with the sphere centered at origin
     float det = pow((ray_t.direction()*(ray_t.start() - _center)), 2) - (ray_t.direction()*ray_t.direction())*(((ray_t.start()-_center)*(ray_t.start()-_center)) - pow(_r,2));
-    if (det < 0) return numeric_limits<float>::infinity();
+    if (det < 0) return std::numeric_limits<float>::infinity();
     else det = sqrt(det);
     float base = -1*(ray_t.direction() * (ray_t.start() - _center));
     if (base - det < 0) {
@@ -172,11 +172,11 @@ double Triangle::intersect(Ray & ray) {
     mat3 D(verts[0] - verts[1], verts[0] - verts[2], verts[0] - vec3(ray_t.start()));
     D = D.transpose();
     float t = D.determinant() / det_A;
-    if (t < 0) return numeric_limits<float>::infinity();
+    if (t < 0) return std::numeric_limits<float>::infinity();
     float gamma = C.determinant() / det_A;
-    if (gamma < 0 || gamma > 1) return numeric_limits<float>::infinity();
+    if (gamma < 0 || gamma > 1) return std::numeric_limits<float>::infinity();
     float beta = B.determinant() / det_A;
-    if (beta < 0 || beta > 1 - gamma) return numeric_limits<float>::infinity();
+    if (beta < 0 || beta > 1 - gamma) return std::numeric_limits<float>::infinity();
     return t;
 }
 
@@ -296,7 +296,7 @@ double Cuboid::intersect(Ray & ray) {
     if ((t_x_min > t_y_max) || (t_x_max < t_y_min) ||
         (t_y_min > t_z_max) || (t_y_max < t_z_min) ||
         (t_x_min > t_z_max) || (t_x_max < t_z_min)) {
-        return numeric_limits<float>::infinity();
+        return std::numeric_limits<float>::infinity();
     }
     // we have point of interections corresponding to t_x_min, t_y_min or t_z_min depending on which surface has the intersection
     return MAX(t_x_min, MAX(t_y_min, t_z_min));
@@ -357,7 +357,7 @@ double Cylinder::intersect(Ray & ray) {
     double c = pow(start[0], 2) + pow(start[2], 2) - 1;
     double det = pow(b, 2) - 4*a*c;
     if (det < 0) {
-        return numeric_limits<float>::infinity();
+        return std::numeric_limits<float>::infinity();
     }
     double t1 = (-b - sqrt(det))/(2*a);
     double t2 = (-b + sqrt(det))/(2*a);
@@ -389,7 +389,7 @@ double Cylinder::intersect(Ray & ray) {
         }
     }
     // No intersection at all.
-    return numeric_limits<float>::infinity();
+    return std::numeric_limits<float>::infinity();
 }
 
 //Calculates the normal for the given position on this sphere.
@@ -437,7 +437,7 @@ double Cone::intersect(Ray & ray) {
     double c = pow(start[0], 2) + pow(start[2], 2) - pow(start[1], 2);
     double det = pow(b, 2) - 4*a*c;
     if (det < 0) {
-        return numeric_limits<float>::infinity();
+        return std::numeric_limits<float>::infinity();
     }
     double t1 = (-b - sqrt(det))/(2*a);
     double t2 = (-b + sqrt(det))/(2*a);
@@ -459,7 +459,7 @@ double Cone::intersect(Ray & ray) {
         return (_height - start[1]) / dir[1];
     }
     // No intersection at all.
-    return numeric_limits<float>::infinity();
+    return std::numeric_limits<float>::infinity();
 }
 
 //Calculates the normal for the given position on this sphere.

@@ -89,7 +89,7 @@ vector<Ray> Viewport::createViewingRays(Sample & s) {
     vector<Ray> result;
     if (DEPTH_OF_FIELD) {
         double t = _focalPlane->intersect(viewRay);
-        if (!t || t ==numeric_limits<float>::infinity()) {
+        if (!t || t == std::numeric_limits<float>::infinity()) {
             cout << "ERROR: no intersection with focal plane " << s.x() << "," << s.y() << endl;
         
         }
