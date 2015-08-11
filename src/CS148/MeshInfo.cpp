@@ -80,3 +80,62 @@ bool OBJTriangleMesh::loadFile(string file) {
     cout << "Num triangles in mesh : " << triangles.size() << endl;
     return true;
 }
+
+bool OBJTriangleMesh::loadGroupFromFile(string file, string groupName) {
+    clear();
+    
+    ifstream f(file.c_str());
+    if (!f) {
+        std::cerr << "Mesh: Couldn't load file " << file << std::endl;
+        return false;
+    }
+    string line;
+    bool reachedGroup = false;
+    while (getline(f,line)) {
+        stringstream linestream(line);
+        string op;
+        linestream >> op;
+        if (op[0] == '#')
+            continue;
+        if (op == "v") {
+            vec3 v;
+            linestream >> v;
+            vertices.push_back(new OBJVertex(v));
+        }
+        if (op == "vn") {
+            vec3 n;
+            linestream >> n;
+            normals.push_back(new OBJNormal(n));
+        }
+        if (op == "vt") {
+            vec2 t;
+            linestream >> t;
+            textures.push_back(new OBJTexture(t));
+        }
+        if (op == "g") {
+            string name;
+            linestream >> name;
+            if (reachedGroup) {
+                // time to exit
+                return true;
+            }
+            if (name == groupName) {
+                reachedGroup = true;
+            }
+        }
+        if (op == "f" && reachedGroup) { // extract a face as a triangle fan
+            VertexTextureNormal first, second, third;
+            if (!getFirstValue(linestream, first))
+                continue;
+            if (first.normal != -1) _verticesHaveNormal = true;
+            if (first.texture != -1) _verticesHaveTexture = true;
+            if (!getFirstValue(linestream, second))
+                continue;
+            while (getFirstValue(linestream, third)) {
+                triangles.push_back(new OBJTriangle(first, second, third));
+                second = third;
+            }
+        }
+    }
+    return true;
+}

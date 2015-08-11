@@ -9,6 +9,10 @@
 #include "CS148/PerlinNoise.h"
 #include "CS148/Texture.h"
 
+bool DOUBLE_EQ(double a, double b) {
+    return (a - b < 0.0001);
+}
+
 Primitive::Primitive(RGB & c, Material & m, Texture* texture, Texture* bumpTexture, mat4 modelToWorld) {
     _c = c;
     _texture = texture;
@@ -36,6 +40,12 @@ RGB Primitive::getColor(vec3 position) {
 const Material& Primitive::getMaterial() {
     return _m;
 }
+
+/****************************************************************
+ *													   *
+ *		    Sphere                                             *
+ *											   		   *
+ ****************************************************************/
 
 Sphere::Sphere(double radius, RGB & c, Material & m, Texture* t, Texture* bt, PerlinNoise* noise, mat4 m2w): Primitive(c,m,t,bt,m2w) {
     _r = radius;
@@ -109,7 +119,13 @@ inline vec3 Sphere::calculateNormal(vec4 & position) {
     return (normal + u*x_gradient + v*y_gradient).normalize();
 }
 
-Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Primitive(col,m,t,bt,m2w) {
+/****************************************************************
+ *													   *
+ *		    Triangle                                           *
+ *											   		   *
+ ****************************************************************/
+
+Triangle::Triangle(vec3 a, vec3 b, vec3 c, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) :Primitive(col,m,t,bt,m2w) {
     verts[0] = a; verts[1] = b; verts[2] = c;
     _verticesHaveNormals = false;
     _verticesHaveTexture = false;
@@ -134,12 +150,13 @@ Triangle::Triangle(vec3 a, vec3 n1, vec3 b, vec3 n2, vec3 c, vec3 n3, RGB & col,
 
 Triangle::Triangle(vec3 a, vec2 t1, vec3 b, vec2 t2, vec3 c, vec2 t3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, b, c, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
-    _verticesHaveTexture = true;
+    _verticesHaveTexture = (t != NULL);
 }
 
 Triangle::Triangle(vec3 a, vec2 t1, vec3 n1, vec3 b, vec2 t2, vec3 n2, vec3 c, vec2 t3, vec3 n3, RGB & col, Material & m, Texture* t, Texture* bt, mat4 m2w) : Triangle(a, n1, b, n2, c, n3, col, m, t, bt, m2w) {
     _textureCoord[0] = t1; _textureCoord[1] = t2; _textureCoord[2] = t3;
-    _verticesHaveTexture = true;
+    _verticesHaveTexture = (t != NULL);
+    _verticesHaveNormals = true;
 }
 
 double Triangle::intersect(Ray & ray) {
@@ -186,8 +203,12 @@ vec3 Triangle::calculateNormal(vec4 & position) {
     double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
     double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
     double alpha = 1 - (beta + gamma);
-    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
-    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    //assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
+    //assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    if (alpha < 0 || beta < 0 || gamma < 0 || alpha > 1 || beta > 1 || gamma > 1) {
+        vec3 normal = _worldToModel.transpose() * vec4(_normal, 0);
+        return vec3(normal, VW).normalize();
+    }
     vec3 normal = _normal;
     if (alpha >= 0 && alpha <= 1 && beta >=0 && beta <=1 && gamma >=0 && gamma <=1) {
         normal = alpha * _vertexNormals[0] + beta * _vertexNormals[1] + gamma * _vertexNormals[2];
@@ -204,26 +225,263 @@ RGB Triangle::getColor(vec3 position) {
     vec3 v0 = verts[1] - verts[0];
     vec3 v1 = verts[2] - verts[0];
     vec3 v2 = vec3(_worldToModel*position) - verts[0];
-    
     // Compute dot products
     double dot00 = v0 * v0;
     double dot01 = v0 * v1;
     double dot02 = v0 * v2;
     double dot11 = v1 * v1;
     double dot12 = v1 * v2;
-    
     // Compute barycentric coordinates
     double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
     double beta = (dot11 * dot02 - dot01 * dot12) * invDenom;
     double gamma = (dot00 * dot12 - dot01 * dot02) * invDenom;
     double alpha = 1 - (beta + gamma);
-    assert(alpha >= 0); assert(beta >= 0); assert(gamma >= 0);
-    assert(alpha <= 1); assert(beta <= 1); assert(gamma <= 1);
+    if (alpha < 0 || beta < 0 || gamma < 0 || alpha > 1 || beta > 1 || gamma > 1) {
+        return RGB(0, 0, 0);
+    }
     vec2 textureCoord = alpha*_textureCoord[0] + beta*_textureCoord[1] + gamma*_textureCoord[2];
+    assert(_texture != NULL);
     vec2 indices(textureCoord[0] * _texture->_width, textureCoord[1] * _texture->_height);
     // Read in the texture image at this coordinate.
     return _texture->_data[int(indices[1])*_texture->_width + int(indices[0])];
 }
+
+/****************************************************************
+ *													   *
+ *		    Cuboid                                             *
+ *											   		   *
+ ****************************************************************/
+
+Cuboid::Cuboid(vec3 bottomLeft, vec3 topRight, RGB & c, Material & m, mat4 m2w): Primitive(c,m,NULL,NULL,m2w) {
+    _bottomLeft = bottomLeft;
+    _topRight = topRight;
+    Box box(bottomLeft, topRight);
+    box.transform(_modelToWorld);
+    _boundingBox = box;
+}
+
+RGB Cuboid::getColor(vec3 position) {
+    return _c;
+}
+
+//Checks for intersection with the given ray
+double Cuboid::intersect(Ray & ray) {
+    Ray ray_t = ray;
+    ray_t.transform(_worldToModel);
+    vec3 dir = vec3(ray_t.direction(), VW);
+    vec3 start = ray_t.start();
+    double a = 1/dir[0], b = 1/dir[1], c = 1/dir[2];
+    double t_x_min, t_x_max, t_y_min, t_y_max, t_z_min, t_z_max;
+    if (a >= 0) {
+        t_x_min = a * (_bottomLeft[0] - start[0]);
+        t_x_max = a * (_topRight[0] - start[0]);
+    } else {
+        t_x_min = a * (_topRight[0] - start[0]);
+        t_x_max = a * (_bottomLeft[0] - start[0]);
+    }
+    if (b >= 0) {
+        t_y_min = b * (_bottomLeft[1] - start[1]);
+        t_y_max = b * (_topRight[1] - start[1]);
+    } else {
+        t_y_min = b * (_topRight[1] - start[1]);
+        t_y_max = b * (_bottomLeft[1] - start[1]);
+    }
+    if (c >= 0) {
+        t_z_min = c * (_bottomLeft[2] - start[2]);
+        t_z_max = c * (_topRight[2] - start[2]);
+    } else {
+        t_z_min = c * (_topRight[2] - start[2]);
+        t_z_max = c * (_bottomLeft[2] - start[2]);
+    }
+    if ((t_x_min > t_y_max) || (t_x_max < t_y_min) ||
+        (t_y_min > t_z_max) || (t_y_max < t_z_min) ||
+        (t_x_min > t_z_max) || (t_x_max < t_z_min)) {
+        return numeric_limits<float>::infinity();
+    }
+    // we have point of interections corresponding to t_x_min, t_y_min or t_z_min depending on which surface has the intersection
+    return MAX(t_x_min, MAX(t_y_min, t_z_min));
+}
+
+//Calculates the normal for the given position on this sphere.
+inline vec3 Cuboid::calculateNormal(vec4 & position) {
+    vec3 position_t = _worldToModel*position;
+    // Which face does this point lie in ? return normal based on that
+    vec3 normal;
+    if (DOUBLE_EQ(position_t[0], _bottomLeft[0])) {
+        normal = vec3(-1, 0, 0);
+    } else if (DOUBLE_EQ(position_t[1], _bottomLeft[1])) {
+        normal = vec3(0, -1, 0);
+    } else if (DOUBLE_EQ(position_t[2], _bottomLeft[2])) {
+        normal = vec3(0, 0, 1);
+    } else if (DOUBLE_EQ(position_t[0], _topRight[0])) {
+        normal = vec3(1, 0, 0);
+    } else if (DOUBLE_EQ(position_t[1], _topRight[1])) {
+        normal = vec3(0, 1, 0);
+    } else if (DOUBLE_EQ(position_t[2], _topRight[2])) {
+        normal = vec3(0, 0, -1);
+    } else {
+        cout << "Interection point does not lie on cuboid : " << position_t << endl;
+        exit(1);
+    }
+    return vec3(_worldToModel.transpose() * vec4(normal, 0), VW);
+}
+
+/****************************************************************
+ *													   *
+ *		    Cylinder                                           *
+ *											   		   *
+ ****************************************************************/
+
+Cylinder::Cylinder(double height, double r, RGB & c, Material & m, mat4 m2w): Primitive(c,m,NULL,NULL,m2w) {
+    _height = height;
+    _r = r;
+    Box box(vec3(-r, 0, 0 - r),
+            vec3(r, _height, r));
+    box.transform(_modelToWorld);
+    _boundingBox = box;
+}
+
+RGB Cylinder::getColor(vec3 position) {
+    return _c;
+}
+
+//Checks for intersection with the given ray
+double Cylinder::intersect(Ray & ray) {
+    Ray ray_t = ray;
+    ray_t.transform(_worldToModel);
+    vec3 dir = vec3(ray_t.direction(), VW);
+    vec3 start = ray_t.start();
+    // Intersection with the curved surface.
+    double a = pow(dir[0], 2) + pow(dir[2], 2);
+    double b = 2 * start[0] * dir[0] + 2 * start[2] * dir[2];
+    double c = pow(start[0], 2) + pow(start[2], 2) - 1;
+    double det = pow(b, 2) - 4*a*c;
+    if (det < 0) {
+        return numeric_limits<float>::infinity();
+    }
+    double t1 = (-b - sqrt(det))/(2*a);
+    double t2 = (-b + sqrt(det))/(2*a);
+    double y1 = vec3(ray_t.getPos(t1))[1];
+    double y2 = vec3(ray_t.getPos(t2))[1];
+    
+    if (y1 >= 0 && y1 <= _height) {
+        if (y2 >= 0 && y2 <= _height) {
+            if (t1 >= 0 && t2 >= 0) return MIN(y1, y2);
+            else if (t1 < 0 && t2 >= 0) return y2;
+            else if (t1 >= 0 && t2 < 0) return y1;
+        } else {
+            if (t1 >= 0) return y1;
+        }
+    } else if (y2 >= 0 && y2 <= _height) {
+        if (t2 >= 0) return y2;
+    }
+    // Intersection with the capping planes.
+    if ((y1 <= 0 && y2 >= 0) || (y1 >= 0 && y2 <= 0)) {
+        double t3 = (0 - start[1]) / dir[1];
+        if (t3 >= 0) {
+            return t3;
+        }
+    }
+    if ((y1 <= _height && y2 >= _height) || (y2 <= _height && y1 >= _height)) {
+        double t3 = (_height - start[1]) / dir[1];
+        if (t3 >= 0) {
+            return t3;
+        }
+    }
+    // No intersection at all.
+    return numeric_limits<float>::infinity();
+}
+
+//Calculates the normal for the given position on this sphere.
+inline vec3 Cylinder::calculateNormal(vec4 & position) {
+    vec3 position_t = _worldToModel*position;
+    // Does this point lie on a face ?
+    if (position_t[1] == 0) {
+        return vec3(0, -1, 0);
+    } else if (position_t[1] == _height) {
+        return vec3(0, 1, 0);
+    }
+    // Must lie on the curved surface
+    vec3 normal(position_t[0]/_r, 0, position_t[2]/_r);
+    return vec3(_worldToModel.transpose() * vec4(normal, 0), VW);
+}
+
+/****************************************************************
+ *													   *
+ *		    Cone                                               *
+ *											   		   *
+ ****************************************************************/
+
+Cone::Cone(double height, double r, RGB & c, Material & m, mat4 m2w): Primitive(c,m,NULL,NULL,m2w) {
+    _height = height;
+    _r = r;
+    Box box(vec3(-r, 0, - r),
+            vec3(r, _height, r));
+    box.transform(_modelToWorld);
+    _boundingBox = box;
+}
+
+RGB Cone::getColor(vec3 position) {
+    return _c;
+}
+
+//Checks for intersection with the given ray
+double Cone::intersect(Ray & ray) {
+    Ray ray_t = ray;
+    ray_t.transform(_worldToModel);
+    vec3 dir = vec3(ray_t.direction(), VW);
+    vec3 start = ray_t.start();
+    // Intersection with the curved surface.
+    double a = pow(dir[0], 2) + pow(dir[2], 2) - pow(dir[1], 2);
+    double b = 2 * start[0] * dir[0] + 2 * start[2] * dir[2] - 2 * start[1] * dir[1];
+    double c = pow(start[0], 2) + pow(start[2], 2) - pow(start[1], 2);
+    double det = pow(b, 2) - 4*a*c;
+    if (det < 0) {
+        return numeric_limits<float>::infinity();
+    }
+    double t1 = (-b - sqrt(det))/(2*a);
+    double t2 = (-b + sqrt(det))/(2*a);
+    double y1 = vec3(ray_t.getPos(t1))[1];
+    double y2 = vec3(ray_t.getPos(t2))[1];
+    
+    if (y1 >= 0 && y1 <= _height) {
+        if (y2 >= 0 && y2 <= _height) {
+            if (t1 >= 0 && t2 >= 0) return MIN(y1, y2);
+            else if (t1 < 0 && t2 >= 0) return y2;
+            else if (t1 >= 0 && t2 < 0) return y1;
+        } else {
+            if (t1 >= 0) return y1;
+        }
+    } else if (y2 >= 0 && y2 <= _height) {
+        if (t2 >= 0) return y2;
+    }
+    if ((y1 <= _height && y2 >= _height) || (y2 <= _height && y1 >= _height)) {
+        return (_height - start[1]) / dir[1];
+    }
+    // No intersection at all.
+    return numeric_limits<float>::infinity();
+}
+
+//Calculates the normal for the given position on this sphere.
+inline vec3 Cone::calculateNormal(vec4 & position) {
+    vec3 position_t = _worldToModel*position;
+    // Does this point lie on bottom face ?
+    if (position_t[1] == _height) {
+        return vec3(0, 1, 0);
+    }
+    double theta = atan(_r/_height);
+    double d = position_t[1] / cos(theta);
+    double phi = asin(position_t[0]/ (d*sin(theta)));
+    // Must lie on the curved surface
+    vec3 normal(cos(theta)*sin(phi), -sin(theta), cos(theta)*cos(phi));
+    return vec3(_worldToModel.transpose() * vec4(normal, 0), VW);
+}
+
+/****************************************************************
+ *													   *
+ *		    Bounding Box                                       *
+ *											   		   *
+ ****************************************************************/
 
 Box::Box (const vector<Primitive*>& primitives) {
     assert(primitives.size() >= 1);
@@ -301,88 +559,4 @@ bool Box::intersect(Ray& ray) {
             return false;
     }
     return true;
-}
-
-BVHNode::BVHNode(vector<Primitive*>& primitives, int AXIS) {
-    _primitive = NULL;
-    int N = primitives.size();
-    assert (N >=1);
-    if (N==1) {
-        _primitive = primitives[0];
-        _left_child = NULL;
-        _right_child = NULL;
-        _boundingBox = _primitive->boundingBox();
-    } else {
-        Box bb = Box(primitives);
-        double midpoint = (bb.bottomLeft()[AXIS] + bb.topRight()[AXIS]) / 2;
-        vector<Primitive*> left_list, right_list;
-        for (Primitive* p : primitives) {
-            if ((p->boundingBox().bottomLeft()[AXIS] - midpoint) *
-                (p->boundingBox().topRight()[AXIS] - midpoint) >= 0) {
-                // Completely on one side
-                if (p->boundingBox().bottomLeft()[AXIS] - midpoint > 0) {
-                    right_list.push_back(p);
-                } else {
-                    left_list.push_back(p);
-                }
-            } else {
-                // randomly put on any side
-                if (rand() % 2 == 0) {
-                    right_list.push_back(p);
-                } else {
-                    left_list.push_back(p);
-                }
-            }
-        }
-        _left_child = NULL; _right_child = NULL;
-        if (left_list.size() > 0 && right_list.size() > 0) {
-            _left_child = new BVHNode(left_list, (AXIS + 1)%3);
-            _right_child = new BVHNode(right_list, (AXIS + 1)%3);
-            _boundingBox = _right_child->boundingBox();
-            _boundingBox = _left_child->boundingBox().combine(_boundingBox);
-        } else if (left_list.size() > 0 && right_list.size() == 0) {
-            _left_child = new BVHNode(left_list, (AXIS + 1)%3);
-            _boundingBox = _left_child->boundingBox();
-        } else if (left_list.size() == 0 && right_list.size() > 0) {
-            _right_child = new BVHNode(right_list, (AXIS + 1)%3);
-            _boundingBox = _right_child->boundingBox();
-        } else {
-            // Cannnot happen.
-            assert(false);
-        }
-    }
-}
-
-Primitive* BVHNode::intersect(Ray& ray, double& t) {
-    if (_primitive != NULL) {
-        // Leaf node
-        double curr_t = _primitive->intersect(ray);
-        if (curr_t < std::numeric_limits<double>::max() && curr_t > ray.getMinT()) {
-            t = curr_t;
-            return _primitive;
-        }
-    }
-    if (!_boundingBox.intersect(ray)) return NULL;
-    double t_l, t_r;
-    Primitive* left_result = NULL;
-    Primitive* right_result = NULL;
-    if (_left_child != NULL) {
-        left_result = _left_child->intersect(ray, t_l);
-    }
-    if (_right_child != NULL) {
-        right_result = _right_child->intersect(ray, t_r);
-    }
-    if (left_result == NULL && right_result == NULL) {
-        t = std::numeric_limits<double>::max();
-        return NULL;
-    } else if (left_result == NULL) {
-        t = t_r;
-        return right_result;
-    } else if (right_result == NULL) {
-        t = t_l;
-        return left_result;
-    }
-    // Both subtrees have interection. Pick the one in front.
-    t = MIN(t_l, t_r);
-    return t_l < t_r ? left_result : right_result;
 }

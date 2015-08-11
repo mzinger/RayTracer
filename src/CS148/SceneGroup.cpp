@@ -15,6 +15,9 @@ SceneGroup::SceneGroup()
 
     _sphere = NULL;
     _triangle = NULL;
+    _cuboid = NULL;
+    _cone = NULL;
+    _cylinder = NULL;
     _light = NULL;
     _camera = NULL;
     _meshMaterial = NULL;
@@ -29,6 +32,10 @@ SceneGroup::~SceneGroup()
     delete _light;
     delete _camera;
     delete _mesh;
+    delete _cylinder;
+    delete _cone;
+    delete _cuboid;
+    delete _triangle;
 }
 
 int SceneGroup::getChildCount()
@@ -50,7 +57,6 @@ bool SceneGroup::computeMesh(OBJTriangleMesh* &mesh, MaterialInfo &material, int
 
     mesh = _mesh;
     material = _meshMaterial->getMaterial(time);
-
     return true;
 }
 
@@ -64,12 +70,43 @@ bool SceneGroup::computeSphere(double &radius, MaterialInfo &material, int time)
     return true;
 }
 
+bool SceneGroup::computeCylinder(double &radius, double &height, MaterialInfo &material, int time) { /* get a cylinder */
+    if (_cylinder == NULL)
+        return false;
+
+    radius = _cylinder->getRadius(time);
+    height = _cylinder->getHeight(time);
+    material = _cylinder->getMaterial(time);
+    
+    return true;
+}
+
+bool SceneGroup::computeCone(double &radius, double &height, MaterialInfo &material, int time) { /* get a cone */
+    if (_cone == NULL)
+        return false;
+    
+    radius = _cone->getRadius(time);
+    height = _cone->getHeight(time);
+    material = _cone->getMaterial(time);
+    
+    return true;
+}
+
 bool SceneGroup::computeTriangle(VertexInfo &vertices, MaterialInfo &material, int time) { /* get a triangle */
     if (_triangle == NULL)
         return false;
 
     vertices = _triangle->getVertices(time);
     material = _triangle->getMaterial(time);
+    
+    return true;
+}
+
+bool SceneGroup::computeCuboid(VertexInfo &vertices, MaterialInfo &material, int time) { /* get a cuboid */        if (_cuboid == NULL)
+        return false;
+
+    vertices = _cuboid->getVertices(time);
+    material = _cuboid->getMaterial(time);
     
     return true;
 }

@@ -3,7 +3,7 @@
     (ma .1) (ml .3) (ms .7) (msp 100) (msm 1) (mt 0) (mtn 1)
 )
 
-(Include mesh "tests/teapot.obj" (material mesh1mat))
+(Include mesh "tests/venus.obj" (material mesh1mat))
 
 (Light amb
     (type 0) (color .5 .2 .2)
@@ -29,7 +29,7 @@
                            0 0 .5 0
                            0 0 0 0)) # points toward (.5,.5,-.5)
     (I amb1 amb)
-    (I tea1 mesh (R 30 1 0 0) (T 0 -2 -12))
+    (I tea1 mesh (R -90 1 0 0) (S 0.5 0.5) (T 0 0 -12))
     (I pt1 pt (T 2 2 -8))
 )
 

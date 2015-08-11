@@ -14,6 +14,11 @@
 
 using namespace std;
 
+struct OBJMeshInfo {
+    string groupName;
+    string matName;
+};
+
 class SceneLoader { // this is basically like an elaborate constructor for Scene
 
 public:
@@ -59,6 +64,9 @@ private:
     void SetLightDefaults(SceneGroup *n);
     void SetSphereDefaults(SceneGroup *n);
     void SetTriangleDefaults(SceneGroup *n);
+    void SetCuboidDefaults(SceneGroup *n);
+    void SetCylinderDefaults(SceneGroup *n);
+    void SetConeDefaults(SceneGroup *n);
     void SetCameraDefaults(SceneGroup *n);
     void SetMaterialDefaults(ParametricMaterial *n);
 
@@ -71,8 +79,15 @@ private:
     bool doLight(istream &str, string &name); // process a Light command
     bool doSphere(istream &str, string &name); // process a Sphere command
     bool doTriangle(istream &str, string &name); // process a Triangle command
+    bool doCuboid(istream &str, string &name); // process a Cuboid command
+    bool doCylinder(istream &str, string &name); // process a Cylinder command
+    bool doCone(istream &str, string &name); // process a Cone command
     bool doMaterial(istream &str, string &name); // process a Material command
 
+    bool doMtllib(istream &str);
+    void getOBJMeshes(string& file, vector<OBJMeshInfo>& meshes);
+    bool doMatMesh(istream &str);
+    
     /* the main loading function */
     bool buildScene(string filename); 
 };

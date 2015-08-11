@@ -88,6 +88,50 @@ private:
     PerlinNoise* _noise;
 };
 
+class Cuboid : public Primitive {
+public:
+    Cuboid(vec3 bottomLeft, vec3 topRight, RGB & c, Material & m, mat4 modelToWorld);
+    
+    double intersect(Ray & ray);
+    vec3 calculateNormal(vec4 & position);
+    Box boundingBox();
+    RGB getColor(vec3 position);
+    
+private:
+    vec3 _bottomLeft;
+    vec3 _topRight;
+};
+
+// Y axis aligned cylinder with base center at origin.
+class Cylinder : public Primitive {
+public:
+    Cylinder(double height, double radius, RGB & c, Material & m, mat4 modelToWorld);
+    
+    double intersect(Ray & ray);
+    vec3 calculateNormal(vec4 & position);
+    Box boundingBox();
+    RGB getColor(vec3 position);
+    
+private:
+    double _r;
+    double _height;
+};
+
+// Y axis aligned inverted cone with tip at origin.
+class Cone : public Primitive {
+public:
+    Cone(double height, double radius, RGB & c, Material & m, mat4 modelToWorld);
+    
+    double intersect(Ray & ray);
+    vec3 calculateNormal(vec4 & position);
+    Box boundingBox();
+    RGB getColor(vec3 position);
+    
+private:
+    double _r;
+    double _height;
+};
+
 class Triangle : public Primitive {
     friend class World;
 public:
@@ -108,23 +152,6 @@ private:
     vec3 _normal;
     bool _verticesHaveNormals;
     bool _verticesHaveTexture;
-};
-
-class BVHNode {
-public:
-    BVHNode(vector<Primitive*>& primitives, int AXIS);
-
-    // Returns the primitive in the subtree rooted at this node that fist intersects a ray or NULL if no intersection.
-    Primitive* intersect(Ray& r, double& t);
-
-    Box boundingBox() {
-        return _boundingBox;
-    }
-
-    BVHNode* _left_child;
-    BVHNode* _right_child;
-    Primitive* _primitive;  // if this is a leaf node.
-    Box _boundingBox;
 };
 
 #endif /* PRIMITIVE_H_ */
